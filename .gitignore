@@ -32,6 +32,6 @@ vignettes/*.pdf
 *.utf8.md
 *.knit.md
 
-/www/tmp/*
+/www/tmp/*.pdf
 /*.log
 /sessionInfo.txt
