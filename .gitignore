@@ -35,3 +35,4 @@ vignettes/*.pdf
 /www/tmp/*.pdf
 /*.log
 /sessionInfo.txt
+/rsconnect
