@@ -8,6 +8,9 @@ library(biomaRt)
 library(Biobase)
 
 
+#####################################################
+
+
 shinyServer(function(input, output, session) {
   session$allowReconnect(TRUE)
   # load data
@@ -17,7 +20,7 @@ shinyServer(function(input, output, session) {
   # statistical model
   source("panels/statmodel-server.R", local = T)
   # functional analysis
-  source("panels/analysis-server.R", local = T)
+#  source("panels/analysis-server.R", local = T)
   # future experiment
   source("panels/expdes-server.R", local = T) 
 })

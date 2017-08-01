@@ -42,17 +42,21 @@ observeEvent(input$clear, {
 
 # compare data
 
-data_comparison <- reactive({groupComparison(contrast.matrix = matrix_build(), data = preprocess_data())}) 
+
+
+data_comparison <- eventReactive(input$calculate, {
+  groupComparison(contrast.matrix = matrix_build(), data = preprocess_data())
+})
 
 # download comparison data
 
 output$compar <- downloadHandler(
   filename = function() {
-  paste("comparison-", Sys.Date(), ".csv", sep="")
-},
-content = function(file) {
-  write.csv(data_comparison()$ComparisonResult, file)
-})
+    paste("comparison-", Sys.Date(), ".csv", sep="")
+  },
+  content = function(file) {
+    write.csv(data_comparison()$ComparisonResult, file)
+  })
 
 output$model_QC <- downloadHandler(
   filename = function() {
@@ -71,41 +75,64 @@ output$fitted_v <- downloadHandler(
   })
 
 SignificantProteins <- reactive({with(data_comparison(),
-                            ComparisonResult[ComparisonResult$adj.pvalue < input$signif, ])
+                                      ComparisonResult[ComparisonResult$adj.pvalue < input$signif, ])
 })
 
 
 # comparison plots
 
-group_comparison <- eventReactive(input$plot_results, {
+observeEvent(input$plotresults, {
+  group_comparison(TRUE)  
+})
+
+observeEvent(input$viewresults, {
+  group_comparison(FALSE)  
+})
+
+group_comparison <- function(saveFile1) {
   
   id1 <- as.character(UUIDgenerate(FALSE))
   id_address1 <- paste("tmp/",id1, sep = "")
-  path1 = paste("www/", id_address1, sep = "")
   
-  groupComparisonPlots(data=data_comparison()$ComparisonResult,
-                     type=input$typeplot,
-                     sig=input$sig,
-                     FCcutoff=input$FC,
-                     logBase.pvalue=input$logp,
-#                     ylimUp=input_ylup,
-#                     ylimDown=input_yldown,
-#                     xlimUp=input_xlimUp,
-#                     x.axis.size=input_xax,
-#                     y.axis.size=input_yax,
-#                     dot.size=input_dot,
-#                     text.size=input_text,
-#                     legend.size=input_legend,
-                     ProteinName=input$pname,
-                     numProtein=input$nump, 
-                     clustering=input$cluster, 
-#                     height=input_h, 
-#                     width=input_w, 
-                     which.Comparison=input$whichComp,
-                     address=path1
-)
-  return(id_address1)
-})
+  path1 <- function() {
+    if (saveFile1) {
+      path1_id = paste("www/", id_address1, sep = "")
+    }
+    else {
+      path1_id = FALSE
+    }
+    return(path1_id)
+  }
+  
+  plot1 <- groupComparisonPlots(data=data_comparison()$ComparisonResult,
+                                type=input$typeplot,
+                                sig=input$sig,
+                                FCcutoff=input$FC,
+                                logBase.pvalue=input$logp,
+                                #                     ylimUp=input_ylup,
+                                #                     ylimDown=input_yldown,
+                                #                     xlimUp=input_xlimUp,
+                                #                     x.axis.size=input_xax,
+                                #                     y.axis.size=input_yax,
+                                #                     dot.size=input_dot,
+                                #                     text.size=input_text,
+                                #                     legend.size=input_legend,
+                                ProteinName=input$pname,
+                                numProtein=input$nump, 
+                                clustering=input$cluster, 
+                                #                     height=input_h, 
+                                #                     width=input_w, 
+                                which.Comparison=input$whichComp,
+                                address=path1()
+                                
+  )
+  if(saveFile1) {
+    return(id_address1)
+  }
+  else {
+    return(plot1)
+  }
+}
 
 # model assumptions plots
 
@@ -133,7 +160,7 @@ assumptions2 <- eventReactive(input$plot_assumptions, {
 
 output$choice1 <- renderUI({
   selectInput("group1", "Group 1", choices())
-
+  
 })
 
 output$choice2 <- renderUI({
@@ -146,24 +173,47 @@ output$comparisons <- renderText({
 })
 
 output$matrix <- renderUI({
-  if (is.null(contrast$matrix)) {
+  tagList(
+    h4("Selected comparisons"),
+    textOutput("comparisons"),
+    h5("Comparison matrix"),
+    if (is.null(contrast$matrix)) {
     ""
-  } else {
+      } else {
     tableOutput("table") 
   }
+  )
 })
-  
+
 output$table <-  renderTable({
   matrix_build()
 }, rownames = T)
 
 output$significant <- renderTable({
   head(SignificantProteins())
-  })
-  
+})
+
 output$number <- renderText({
   nrow(SignificantProteins())
 })
+
+output$table_results <- renderUI({
+  req(data_comparison())
+  
+  tagList(
+    h4("Results"),
+    tags$br(),
+    h4("There are ",textOutput("number", inline = TRUE),"significant proteins"),
+    tableOutput("significant"),
+    tags$br(),
+    downloadButton("download_compar", "Download full table of comparison"),
+    downloadButton("download_signif", "Download table of significant proteins")
+  )
+  
+})
+
+
+
 
 # downloads
 
@@ -206,14 +256,42 @@ output$WhichComp <- renderUI ({
               label = h4("which comparison to plot"), c("all", Rownames()))
 })
 
-output$comparison_plots <- renderUI ({
-  if (input$typeplot == "VolcanoPlot") {
-    a("Open Volcano Plot", href=paste(group_comparison(),"VolcanoPlot.pdf", sep = ""), target="_blank")
+observeEvent(input$plotresults, {
+  insertUI(
+    selector = "#comparison_plots",
+    ui=tags$div(
+      if (input$typeplot == "VolcanoPlot") {
+        a("Open Volcano Plot", href=paste(group_comparison(TRUE),"VolcanoPlot.pdf", sep = ""), target="_blank")
+      }
+      else if (input$typeplot == "Heatmap") {
+        a("Open Heatmap", href=paste(group_comparison(TRUE),"Heatmap.pdf", sep = ""), target="_blank")
+      }
+      else if (input$typeplot == "ComparisonPlot") {
+        a("Open Comparison Plot", href=paste(group_comparison(TRUE),"ComparisonPlot.pdf", sep = ""), target="_blank")
+      }
+    )
+  )
+})
+
+observeEvent(input$viewresults, {
+  insertUI(
+    selector = "#comparison_plots",
+    ui=tags$div(
+      plotOutput("comp_plots", hover = "hover2"),
+      verbatimTextOutput("info2"))
+  )
+}
+)
+
+output$comp_plots <- renderPlot(group_comparison(FALSE))
+
+output$info2 <- renderText({
+  xy_str <- function(e) {
+    if(is.null(e)) return("NULL\n")
+    paste0("x=", round(e$x, 1), " y=", round(e$y, 1), "\n")
   }
-  else if (input$typeplot == "Heatmap") {
-    a("Open Heatmap", href=paste(group_comparison(),"Heatmap.pdf", sep = ""), target="_blank")
-  }
-  else if (input$typeplot == "ComparisonPlot") {
-    a("Open Comparison Plot", href=paste(group_comparison(),"ComparisonPlot.pdf", sep = ""), target="_blank")
-  }
+  paste0(
+    "hover: ", xy_str(input$hover2)
+  )
+  
 })

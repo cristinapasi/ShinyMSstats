@@ -1,65 +1,81 @@
 sbp_load = sidebarPanel(
 
   
-  # selection for DIA or DDA
+  # selection for DIA DDA or SRM/PRM
   
-  radioButtons("DDA_DIA", 
-               label = h4("Type of Acquisition", tipify(icon("question-circle"), title = "Select if the acquisition was Data Independent or Data Dependent")), 
-    c(DDA = "DDA", DIA = "DIA")),
+  radioButtons("DDA_DIA",
+               label = h4("Type of Acquisition", tipify(icon("question-circle"), 
+               title = "Select if the acquisition was Data Independent, Data Dependent or Selected/Parallel Reaction Monitoring")),
+               c("DDA" = "DDA", "DIA" = "DIA", "SRM/PRM" = "SRM_PRM")),
   
   
   # DDA
   
-  conditionalPanel(
-    condition = "input.DDA_DIA == 'DDA'",
-    
-    
-  # selection for file type
-  
-  radioButtons("filetype", 
-               label = h4("Type of File", tipify(icon("question-circle"), title = "Choose input type: sample dataset, classical 10-column dataset, or outputs from Skyline, MaxQuant, Progenesis or Proteome Discoverer")), 
-    c("sample dataset" = "sample", "classic" = "10col", "Skyline" = "sky", "MaxQuant" = "maxq", "Progenesis" = "prog", "Proteome Discoverer" = "PD")),
-  
-  tags$br(),
-  
-  # upload
-  
-  h4("Upload dataset file"),
-  fileInput('data', "", multiple = F, accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
-  
-  radioButtons("sep", 
-               label = h5("Column separator in uploaded file",tipify(icon("question-circle"), title = "Choose how columns are separated in the uploaded file")), 
-               c(Comma=",",Semicolon=";", Tab="\t",Pipe="|"), inline = T),
-  
-  h6("Upload annotation File - only for Skyline, MaxQuant, Progenesis, Proteome Discoverer"),
-  fileInput('annot', "", multiple = F, accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
-  
-  h6("Upload evidence File - only for MaxQuant"),
-  fileInput('evidence', "", multiple = F, accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv"))
-  
-  ),
+  # conditionalPanel(
+  #   condition = "input.DDA_DIA == 'DDA'",
+
+  radioButtons("filetype",
+               label = h4("Type of File", tipify(icon("question-circle"), title = "Choose input type: sample dataset, classical 10-column dataset, or outputs from Skyline, MaxQuant, Progenesis or Proteome Discoverer")),
+    choices = c("sample dataset" = "sample", "10 column dataset" = "10col", "Skyline" = "sky", "MaxQuant" = "maxq", "Progenesis" = "prog", "Proteome Discoverer" = "PD", "Spectronaut" = "spec", "OpenSWATH" = "open"), selected = character(0)),
+ # ),
 
   
    
   # DIA
   
-  conditionalPanel(
-    condition = "input.DDA_DIA == 'DIA'",
+  # conditionalPanel(
+  #   condition = "input.DDA_DIA == 'DIA'",
+  # 
+  #   radioButtons(
+  #   'filetype', label = h4("Type of File", tipify(icon("question-circle"), title = "Choose input type: sample dataset, classical 10-column dataset, or outputs from Skyline, MaxQuant, Progenesis or Proteome Discoverer")),
+  #   choices = c("sample dataset" = "sample2", "10 column dataset" = "10col2", Skyline = "sky2", Spectronaut = "spec", OpenSWATH = "open"), selected = character(0))
+  #   ),
 
-  radioButtons(
-    'filetype', "Type of File", 
-    c(classic = "10col", Skyline = "sky", Spectronaut = "spec", OpenSWATH = "open")),
-    
-  # upload
+ 
   
-  h5("Upload dataset file"),
-  fileInput('data', "", multiple = F, accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
-  
-  h6("Upload annotation File - only OpenSWATH"),
-  fileInput('annot', "", multiple = F, accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv"))
-  )
+# SRM/PRM
+
+  # conditionalPanel(
+  #   condition = "input.DDA_DIA == 'SRM_PRM'",
+  # 
+  #   radioButtons(
+  #   'filetype', label = h4("Type of File", tipify(icon("question-circle"), title = "Choose input type: sample dataset, classical 10-column dataset, or outputs from Skyline, MaxQuant, Progenesis or Proteome Discoverer")),
+  #   choices = c("sample dataset" = "sample3", "10 column dataset" = "10col3", "Skyline" = "sky"), selected = character(0))
+  #   ),
+
+
+
+
+
+# upload
+
+h4("Upload dataset file"),
+
+fileInput('data', "", multiple = F, accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
+
+radioButtons("sep",
+             label = h5("Column separator in uploaded file",tipify(icon("question-circle"), title = "Choose how columns are separated in the uploaded file")),
+             c(Comma=",",Semicolon=";", Tab="\t",Pipe="|"), inline = T),
+tags$br(),
+
+conditionalPanel(
+  condition = "input.filetype == 'sky' || input.filetype == 'maxq' || input.filetype == 'prog' || input.filetype == 'PD'",
+  h5("Upload annotation File"),
+  fileInput('annot', "", multiple = F, accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
+  downloadLink("template", "Open annotation file template")
+),
+
+tags$br(),
+
+conditionalPanel(
+  condition = "input.filetype == 'maxq'",
+  h5("Upload evidence File"),
+  fileInput('evidence', "", multiple = F, accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
+  downloadLink("template1", "Open evidence file template")
 )
-  
+
+)
+
 
 
 
@@ -77,10 +93,6 @@ loadpage = fluidPage(
          tags$br(),
          verbatimTextOutput('summary1')
   )
-  #  fluidRow(column(width = 12,
-  #                  includeMarkdown(""))
-  
-  #  )
 )
 
 

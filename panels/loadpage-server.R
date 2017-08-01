@@ -1,3 +1,37 @@
+# toggle ui
+
+observe({
+  if (input$DDA_DIA == "DDA") {
+    shinyjs::runjs("$('[type=radio][name=filetype]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
+    shinyjs::enable("filetype")
+    shinyjs::disable(selector = "[type=radio][value=open]")
+    shinyjs::disable(selector = "[type=radio][value=spec]")
+    shinyjs::runjs("$.each($('[type=radio][name=filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
+  }
+  else if (input$DDA_DIA == "DIA") {
+    shinyjs::runjs("$('[type=radio][name=filetype]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
+    shinyjs::enable("filetype")
+    shinyjs::disable(selector = "[type=radio][value=maxq]")
+    shinyjs::disable(selector = "[type=radio][value=prog]")
+    shinyjs::disable(selector = "[type=radio][value=PD]")
+    shinyjs::runjs("$.each($('[type=radio][name=filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
+  }
+  else if (input$DDA_DIA == "SRM_PRM") {
+    shinyjs::runjs("$('[type=radio][name=filetype]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
+    shinyjs::enable("filetype")
+    shinyjs::disable(selector = "[type=radio][value=open]")
+    shinyjs::disable(selector = "[type=radio][value=spec]")
+    shinyjs::disable(selector = "[type=radio][value=maxq]")
+    shinyjs::disable(selector = "[type=radio][value=prog]")
+    shinyjs::disable(selector = "[type=radio][value=PD]")
+    shinyjs::runjs("$.each($('[type=radio][name=filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
+    
+  }
+  
+})
+  
+
+
 ### functions ###
 
 get_annot = reactive({
@@ -17,6 +51,10 @@ get_evidence = reactive({
 
 
 get_data = reactive({
+  
+  if(is.null(input$filetype))
+  {return(NULL)}
+
   if(input$filetype == 'sample') {
     mydata <- read.csv("dataset.csv", header = T, sep = ";")
   }
@@ -54,12 +92,32 @@ get_data = reactive({
       mydata <- convert4MSstats(data.transition)
   }}
   mydata <- unique(data.frame(mydata))
-#  session$userData$dataset = 
   return(mydata)
 })
 
 
 
+output$template <- downloadHandler(
+  filename <- function() {
+    paste("templateannotation", "csv", sep=".")
+  },
+  
+  content <- function(file) {
+    file.copy("templateannotation.csv", file)
+  },
+  contentType = "csv"
+)
+
+output$template1 <- downloadHandler(
+  filename <- function() {
+    paste("templateevidence", "txt", sep = ".")
+  },
+  
+  content <- function(file) {
+    file.copy("templateevidence.txt", file)
+  },
+  contentType = "txt"
+)
 
 ### outputs ###
 
