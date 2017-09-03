@@ -1,12 +1,15 @@
 
-
-
 statmodel = fluidPage(
   headerPanel("Statistical Model"),
   p("In this tab a statistical model is built.  Create a contrast matrix with the correct comparisons, then verify the model assumptions and view result plots."),
   p("More info ", a("here", href="https://www.rdocumentation.org/packages/MSstats/versions/3.4.0/topics/groupComparisonPlots")),
   tabsetPanel(
+    
+# statistical model
+    
     tabPanel("Data Comparison",
+             
+# comparison matrix              
              wellPanel(
                fluidRow(
                  column(12,
@@ -23,18 +26,18 @@ statmodel = fluidPage(
                                  sliderInput("signif", 
                                              label = h4("Significance level", tipify(icon("question-circle"), title="Probability of rejecting the null hypothesis given that it is true (probability of type I error)")) , 0, 1, 0.05),
                                  uiOutput("matrix")
-                                 
                           )
                         )
                  )
                )
                ),
+
+# table of significant proteins 
              wellPanel(
                fluidRow(
                  column(12,
                         h3("STEP 2 - View table of results"),
                         actionButton("calculate", "Calculate comparison")
-                        
                  )
                )
                ),
@@ -44,6 +47,8 @@ statmodel = fluidPage(
              tags$br(),
              uiOutput("table_results"),
              tags$br(),
+
+# plot of results
              wellPanel(
                fluidRow(
                  column(12,
@@ -57,7 +62,10 @@ statmodel = fluidPage(
                                                                label = h4("Significance level"), 0.05, 0, 1 , 0.01)),
                                            column(4,
                                                   tags$br(),
-                                                  uiOutput("WhichComp"),
+                                                  conditionalPanel(condition = "input.typeplot != 'ComparisonPlot'",
+                                                                   uiOutput("WhichComp")),
+                                                  conditionalPanel(condition = "input.typeplot == 'ComparisonPlot'",
+                                                                   uiOutput("WhichProt")),
                                                   tags$br(),
                                                   conditionalPanel(condition = "input.typeplot == 'VolcanoPlot' || input.typeplot == 'Heatmap'",
                                                                    checkboxInput("FC1", 
@@ -67,22 +75,24 @@ statmodel = fluidPage(
                                                                    tags$br(),
                                                                    selectInput("logp", 
                                                                                label = h4("Log transformation of adjusted p-value"),
-                                                                               c("base two" = "2", "base ten" = "10"), selected = "base ten")),
-                                                  tags$br(),
-                                                  conditionalPanel(condition = "input.typeplot == 'VolcanoPlot'",
-                                                                   checkboxInput("pname", 
-                                                                                 label = h5("display protein name"))),
-                                                  conditionalPanel(condition = "input.typeplot == 'Heatmap'",
-                                                                   numericInput("nump", "Number of proteins in heatmap", 100, 1, 180, 1))),
+                                                                               c("base two" = "2", "base ten" = "10"), selected = "base ten"))
+                                                  ),
                                            column(4,
                                                   tags$br(),
-                                                  selectInput("cluster",
-                                                              label = h4("Cluster analysis", tipify(icon("question-circle"), title= "How to order proteins and comparisons: compute protein dendrogram and reorder based on protein means; compute comparison dendrogram and reorder based on comparison means; or both", placement = "top")), 
-                                                              c("protein dendogram" = "protein", "comparison dendogram" = "comparison", "protein and comparison dendograms" = "both")))
-                                           
+                                                  conditionalPanel(condition = "input.typeplot == 'Heatmap'",
+                                                                   numericInput("nump", "Number of proteins in heatmap", 100, 1, 180, 1),
+                                                                   selectInput("cluster",
+                                                                               label = h5("Cluster analysis", tipify(icon("question-circle"), 
+                                                                                                                     title= "How to order proteins and comparisons: compute protein dendrogram and reorder based on protein means; compute comparison dendrogram and reorder based on comparison means; or both", 
+                                                                                                                     placement = "top")), 
+                                                                               c("protein dendogram" = "protein", "comparison dendogram" = "comparison", "protein and comparison dendograms" = "both"))),
+                                                  conditionalPanel(condition = "input.typeplot == 'VolcanoPlot'",
+                                                                   checkboxInput("pname", 
+                                                                                 label = h5("display protein name")))
+                                                  )
                                          ),
-                                         actionButton("plotresults", "Save Plot Results as pdf"),
-                                         actionButton("viewresults", "View Plot in browser (only for one comparison)")
+                        actionButton("plotresults", "Save Plot Results as pdf"),
+                        actionButton("viewresults", "View Plot in browser (only for one comparison/protein)")
                  )
                )
              ),
@@ -100,15 +110,9 @@ statmodel = fluidPage(
                
              )
     ),
-                 
-                   
-                 
-                          
-                                                    
-                                                      
-                                                    
-                                                    
-                                                 
+    
+# model assumptions    
+    
     tabPanel("Verify Model Assumptions",
              fluidRow(
                tags$br(),

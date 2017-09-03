@@ -47,14 +47,9 @@ observe({
 # hover
   
   output$info <- renderText({
-    xy_str <- function(e) {
-      if(is.null(e)) return("NULL\n")
-      paste0("x=", round(e$x, 1), " y=", round(e$y, 1), "\n")
-    }
     paste0(
       "hover: ", xy_str(input$plot_hover)
     )
-    
   })
 })
   

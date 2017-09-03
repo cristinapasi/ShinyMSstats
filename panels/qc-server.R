@@ -1,4 +1,5 @@
 
+######## UI ########
 
 # standards name
 
@@ -10,6 +11,8 @@ output$Names <- renderUI({
     selectizeInput("names", "choose standard", unique(get_data()[2]), multiple = T)
   }
 })
+
+# toggle censoring input based on type of experiment
 
 observe({
   if(!is.null(input$filetype)) {
@@ -27,81 +30,90 @@ observe({
 })
 
 observe ({
-    shinyjs::toggleState("maxQC", input$null == FALSE)
+  shinyjs::toggleState("maxQC", input$null == FALSE)
 })
+
+quantile <- function() {
+  if (input$null == TRUE) {
+    maxQC <- NULL
+  }
+  else {
+    maxQC <- input$maxQC
+  }
+  return(maxQC)
+}
+
+# features
 
 output$features <- renderUI({
   req(get_data())
   max_feat <- nrow(unique(get_data()[1]))
-  sliderInput("n_feat", "Number of top features", 1, as.numeric(max_feat), 3)
-  
-}
-  
-)
+  sliderInput("n_feat", "Number of top features to use", 1, as.numeric(max_feat), 3)
+})
 
+observe ({
+  shinyjs::toggleState("n_feat", input$all_feat == FALSE)
+})
+
+features <- function() {
+  if (input$all_feat == FALSE) {
+    n_feat <- "topN"
+  }
+  else {
+    n_feat <- "all"
+  }
+  return(n_feat)
+}
+
+# which protein to plot
+
+output$Which <- renderUI({
+  selectInput("which", "Select protein or show all", c("all", unique(get_data()[1])))
+})
+
+######### functions ########
 
 # preprocess data
   
 preprocess_data = eventReactive(input$run, {
-
   preprocessed <- dataProcess(raw=get_data(),
                               logTrans=input$log,
                               normalization=input$norm,
                               nameStandards=input$names,
-#                              betweenRunInterferenceScore=input$interf, 
-#                              fillIncompleteRows=input$fill,
-                              featureSubset="topN",
-#                              remove_proteins_with_interference=input$interf,
+                              #                              betweenRunInterferenceScore=input$interf, 
+                              #                              fillIncompleteRows=input$fill,
+                              featureSubset=features(),
+                              #                              remove_proteins_with_interference=input$interf,
                               n_top_feature=input$n_feat,
                               summaryMethod="TMP",
-#                              equalFeatureVar=input$equal,
+                              #                              equalFeatureVar=input$equal,
                               censoredInt=input$censInt,
                               cutoffCensored=input$cutoff,
                               MBimpute=input$MBi,
-                              maxQuantileforCensored=input$maxQC,
+                              maxQuantileforCensored=quantile(),
                               remove50missing=input$remove50
- #                             skylineReport=input$report
-)
+                              #                             skylineReport=input$report
+                              )
   return(preprocessed)
-  
-})
-
-# output preprocessed data
-
-observeEvent(input$run, {
-   output$effect <- renderPrint(
-
-     str(preprocess_data())
- 
- )
-  
-  insertUI(selector = "#placeholder",
-           where = "afterEnd",
-            ui= tags$div(tags$br(),
-                         downloadButton("prepr_csv","Download .csv of preprocessed data"),
-                         downloadButton("summ_csv","Download .csv of summarised data")
-                         )
-  )
   })
 
-# plots
+# plot data
+
 observeEvent(input$goplot, {
   plotresult(TRUE)  
 })
-
 observeEvent(input$plothere, {
   plotresult(FALSE)  
 })
 
 plotresult <- function(saveFile) {
-
   id <- as.character(UUIDgenerate(FALSE))
   id_address <- paste("tmp/",id, sep = "")
-  
   path <- function()  {
     if (saveFile) {
       path_id = paste("www/", id_address, sep = "")
-    } else {
+    } 
+    else {
       path_id = FALSE
     }
     return (path_id)
@@ -128,23 +140,38 @@ plotresult <- function(saveFile) {
                      summaryPlot = TRUE,
                      save_condition_plot_result = FALSE,
                      address = path()
-    )
+                     )
   if (saveFile) {
     return(id_address)
-  } else {
+  } 
+  else {
     return (plot)
   }
-}
+  }
   
+######## output #######
 
 
+# output preprocessed data
 
+observeEvent(input$run, {
+  output$effect <- renderPrint(
+    str(preprocess_data())
+  )
+  insertUI(selector = "#download_buttons",
+           where = "afterEnd",
+           ui= tags$div(tags$br(),
+                        downloadButton("prepr_csv","Download .csv of preprocessed data"),
+                        downloadButton("summ_csv","Download .csv of summarised data")
+           )
+  )
+})
 
 # download preprocessed data
 
 output$prepr_csv <- downloadHandler(
   filename = function() {
-    paste("data-", Sys.Date(), ".csv", sep="")
+    paste("Preprocessed_data-", Sys.Date(), ".csv", sep="")
   },
   content = function(file) {
     write.csv(preprocess_data()$ProcessedData, file)
@@ -153,21 +180,14 @@ output$prepr_csv <- downloadHandler(
 
 output$summ_csv <- downloadHandler(
   filename = function() {
-    paste("data-", Sys.Date(), ".csv", sep="")
+    paste("Summarized_data-", Sys.Date(), ".csv", sep="")
   },
   content = function(file) {
     write.csv(preprocess_data()$RunlevelData, file)
   }
 )
 
-# which protein to plot
-
-output$Which <- renderUI({
-  selectInput("which", "Select protein or show all", c("all", unique(get_data()[1])))
-  })
-
-# download plots
-
+# download/view plots
 
  observeEvent(input$goplot, {
    insertUI(
@@ -207,10 +227,6 @@ observeEvent(input$plothere, {
 output$plot_here <- renderPlot(plotresult(FALSE))
 
 output$info1 <- renderText({
-  xy_str <- function(e) {
-    if(is.null(e)) return("NULL\n")
-    paste0("x=", round(e$x, 1), " y=", round(e$y, 1), "\n")
-  }
   paste0(
     "hover: ", xy_str(input$hover1)
   )

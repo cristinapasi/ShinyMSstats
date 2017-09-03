@@ -1,36 +1,32 @@
 ### sidebar ###
 
-  sbp_params = sidebarPanel(
+sbp_params = sidebarPanel(
   
   # transformation
   radioButtons("log", 
                label= h4("STEP 1 - log transformation", tipify(icon("question-circle"), title = "Logarithmic transformation is applied to the Intensities column")), c(log2 = "2", log10 = "10")),
   tags$hr(),
+  
+  #normalisation
   selectInput("norm", 
               label = h4("STEP 2 - normalisation", tipify(icon("question-circle"), title = "Choose a normalisation method.  For more information visit the Help tab")), c("none" = "FALSE", "equalize medians" = "equalizeMedians", "quantile" = "quantile", "global standards" = "globalStandards"), selected = "equalizeMedians"),
   conditionalPanel(condition = "input.norm == 'globalStandards'",
                    radioButtons("standards", "Choose type of standards", c("Proteins", "Peptides")),
                    uiOutput("Names")
-                   
-                   
   ),
   tags$hr(),
   
-  # summary method
+  ### summary method
   h4("STEP 3 - summarization", tipify(icon("question-circle"), title = "Run-level summarization method")),
   p("method: TMP"),
   p("For linear summarzation please use command line"),
-  
   tags$hr(),
   
-  # remove runs with more than 50%missing
-  
+  # remove features with more than 50% missing 
   checkboxInput("remove50", "remove runs with over 50% missing values"),
-  
   tags$hr(),
   
-  # censored
-  
+  ### censoring
   h4("STEP 4 - Censored values"),
   radioButtons('censInt', 
               label = h5("Assumptions for censored data", tipify(icon("question-circle"), title = "Processing software report missing values differently; please choose the appropriate options to distinguish missing values and if censored/at random")), c("assume all NA as censored" = "NA", "assume all between 0 and 1 as censored" = "0", "all missing values are random" = "null"), selected = "NA"),
@@ -54,27 +50,16 @@
                                  )),
   tags$hr(),
   
-  
   # features
   
   h4("STEP 5 - Used features"),
+  checkboxInput("all_feat", "Use all features", value = TRUE),
   uiOutput("features"),
   
-  # radioButtons("feat", 
-  #              label = h4("STEP 5 - Used features", tipify(icon("question-circle"), title = "Use all features or only a subset")), c("all"="all", "top 3"="top3", "top n"="topn")),
-  # conditionalPanel(condition = "input.feat == 'top n'",
-  #                  numericInput("n_feat", "number of features", 3, 3, 100, 1)),
+  # run 
   
-  # interference score
-#  checkboxInput("score", "create interference score", value = FALSE),
-#  conditionalPanel(condition = "input.score == true",
-#                   actionButton("download1", "Download .csv")),
-  
-actionButton("run", "Run Preprocessing")
-
-  
-  
-  
+  tags$hr(),
+  actionButton("run", "Run Preprocessing")
 )
 
   
@@ -90,7 +75,7 @@ main = mainPanel(
                               tags$br(),
                               tags$br(),
                               tags$h4("Calculation in progress...")),
-             tags$div(id='placeholder')),
+             tags$div(id='download_buttons')),
     tabPanel("Plot", 
              wellPanel(
                selectInput("type",
@@ -116,9 +101,7 @@ main = mainPanel(
              tags$div(id = "showplot")
  
              )
-    
   )
-  
 )
   
   
