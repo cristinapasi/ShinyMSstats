@@ -25,13 +25,13 @@ Rownames <- reactive({
 
 output$WhichComp <- renderUI ({
   selectInput("whichComp", 
-              label = h4("which comparison to plot"), c("all", Rownames()), selected = "all")
+              label = h4("which comparison to plot"), c("all", Rownames()))
 })
 
-# output$WhichProt <- renderUI ({
-#   selectInput("whichProt",
-#               label = h4("which protein to plot"), c("all", unique(get_data()[1])), selected = "all")
-# })
+output$WhichProt <- renderUI ({
+  selectInput("whichProt",
+              label = h4("which protein to plot"), c("all", unique(get_data()[1])))
+})
 
 
 ########## functions ########
@@ -44,7 +44,7 @@ matrix_build <- eventReactive(input$submit, {
   )
   index1 <- reactive({which(choices() == input$group1)})
   index2 <- reactive({which(choices() == input$group2)})
-  comp_list$dList <- c(isolate(comp_list$dList), paste(input$group1, "vs", input$group2, sep = " "))
+  comp_list$dList <- c(isolate(comp_list$dList), c(input$group1, "vs", input$group2, ", "))
   contrast$row <- matrix(row(), nrow=1)
   contrast$row[index1()] = 1
   contrast$row[index2()] = -1
@@ -55,8 +55,7 @@ matrix_build <- eventReactive(input$submit, {
     contrast$matrix <- rbind(contrast$matrix, contrast$row)
     contrast$matrix <- rbind(contrast$matrix[!duplicated(contrast$matrix),])
   }
-  row.names(contrast$matrix) <- comp_list$dList
-  colnames(contrast$matrix) <- choices()
+  row.names(contrast$matrix) <- seq(1, nrow(contrast$matrix), 1)
   return(contrast$matrix)
 })
 
@@ -74,30 +73,17 @@ data_comparison <- eventReactive(input$calculate, {
 })
 
 SignificantProteins <- reactive({with(data_comparison(),
-                                      table <- ComparisonResult[ComparisonResult$adj.pvalue < input$signif, ],
-                                      round(table[,3:5], digits = 4))
-  table
-  
+                                      ComparisonResult[ComparisonResult$adj.pvalue < input$signif, ])
 })
 
 # comparison plots
 
 observeEvent(input$plotresults, {
-  if(input$typeplot != "ComparisonPlot") {
-    group_comparison(TRUE)
-  }
-  else {
-    group_comparison(TRUE)
-  }
+  group_comparison(TRUE)  
 })
 
 observeEvent(input$viewresults, {
-  if(input$typeplot != "ComparisonPlot") {
-    group_comparison(TRUE)
-  }
-  else {
-    group_comparison(TRUE)
-  } 
+  group_comparison(FALSE)  
 })
 
 group_comparison <- function(saveFile1) {
@@ -112,7 +98,8 @@ group_comparison <- function(saveFile1) {
     }
     return(path1_id)
   }
-  plot1 <- groupComparisonPlots2(data=data_comparison()$ComparisonResult,
+  
+  plot1 <- groupComparisonPlots(data=data_comparison()$ComparisonResult,
                                 type=input$typeplot,
                                 sig=input$sig,
                                 FCcutoff=input$FC,
@@ -131,7 +118,7 @@ group_comparison <- function(saveFile1) {
                                 #                     height=input_h, 
                                 #                     width=input_w, 
                                 which.Comparison=input$whichComp,
-                                # which.Protein = input$whichProt,
+                                which.Protein=input$whichProt,
                                 address=path1()
   )
   if(saveFile1) {
@@ -189,16 +176,24 @@ output$fitted_v <- downloadHandler(
     write.csv(capture.output(data_comparison()$fittedmodel), file)
   })
 
+# list of comparisons
+
+output$comparisons <- renderText({
+  comp_list$dList
+})
+
 # matrix
 
 output$matrix <- renderUI({
   tagList(
+    h4("Selected comparisons"),
+    textOutput("comparisons"),
     h5("Comparison matrix"),
     if (is.null(contrast$matrix)) {
-    ""
-      } else {
-    tableOutput("table") 
-  }
+      ""
+    } else {
+      tableOutput("table") 
+    }
   )
 })
 
@@ -214,24 +209,16 @@ output$table_results <- renderUI({
     h4("Results"),
     tags$br(),
     h4("There are ",textOutput("number", inline = TRUE),"significant proteins"),
-    dataTableOutput("significant", width = "100%"),
+    tableOutput("significant"),
     tags$br(),
     downloadButton("download_compar", "Download full table of comparison"),
     downloadButton("download_signif", "Download table of significant proteins")
   )
 })
 
-output$significant <- renderDataTable({
-  SignificantProteins()
-
-#  print(colnames(table))
-#  formatRound(table, columns = table[,3], digits = 4)
-}
-# filter = "top",
-# rownames = FALSE 
- 
-
-)
+output$significant <- renderTable({
+  head(SignificantProteins())
+})
 
 # number of significant proteins
 
@@ -245,42 +232,19 @@ observeEvent(input$viewresults, {
   insertUI(
     selector = "#comparison_plots",
     ui=tags$div(
-      plotOutput("comp_plots", height = "100%", click = "click1"),
-      conditionalPanel(condition = "input.typeplot == 'VolcanoPlot'",
-                       h5("Click on plot for details"),
-                       verbatimTextOutput("info2")),
-       conditionalPanel(condition = "input.typeplot == 'Heatmap'",
-                         sliderInput("height", "Plot height", value = 500, min = 200, max = 1300, post = "px"))
-    )
+      plotOutput("comp_plots", hover = "hover2"),
+      verbatimTextOutput("info2"))
   )
 }
 )
 
-observe ({output$comp_plots <- renderPlot({
-  group_comparison(FALSE)}, height = input$height
+output$comp_plots <- renderPlot(group_comparison(FALSE))
+
+output$info2 <- renderText({
+  paste0(
+    "hover: ", xy_str(input$hover2)
   )
 })
-
-plotset <- reactive({
-  v1 <- data_comparison()$ComparisonResult[,1]
-  v2 <- round(data_comparison()$ComparisonResult[,3], 6)
-  v3 <- round(data_comparison()$ComparisonResult[,8], 6)
-  if (input$logp == "2") {
-    v3 <- -log2(v3)
-  }
-  else if (input$logp == "10") {
-    v3 <- - log10(v3)
-  }
-
-  df <- data.frame(v1,v2,v3)
-  colnames(df) <- c("Protein", "logFC", "logadj.pvalue")
-  return(df)
-})
-
-output$info2 <- renderPrint({
-  print(nearPoints(plotset(), input$click1, xvar = "logFC", yvar = "logadj.pvalue"))
-  })
-  
 
 # downloads
 
@@ -300,7 +264,7 @@ output$download_compar <- downloadHandler(
     paste("data-", Sys.Date(), ".csv", sep="")
   },
   content = function(file) {
-    write.csv(data_comparison()$ComparisonResult, file)
+    write.csv(data_comparison(), file)
   }
 )
 

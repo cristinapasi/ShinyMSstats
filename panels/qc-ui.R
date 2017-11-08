@@ -80,7 +80,6 @@ main = mainPanel(
              wellPanel(
                selectInput("type",
                            label = h5("Select plot type", tipify(icon("question-circle"), title = "Use Profile Plots to view technical/biological variability and missing values; use Condition Plots to view differences in intensity between conditions; use QC Plots to view differences between runs and to check the effects of normalization")), c("Show Profile plots"="ProfilePlot","Show Condition plot"="ConditionPlot","Show QC plots"="QCPlot")),
-               uiOutput("Which"),
                conditionalPanel(condition = "input.type == 'ProfilePlot'",
                                 selectInput("fname",  
                                             label = h5("Feature legend", tipify(icon("question-circle"), title = "Print feature level at transition level, peptide level or choose no feature legend")), c("Transition level"="Transition", "Peptide level"="Peptide", "No feature legend"="NA"))
@@ -89,17 +88,16 @@ main = mainPanel(
                                 checkboxInput("cond_scale", "Scale conditional level at x-axis (unequal space at x-axis)", value = FALSE),
                                 radioButtons("interval", "width of error bar", c("use Confidence Interval"="CI", "use Standard Deviation"="SD"))
                ),
-               actionButton("goplot", "Plot results in pdf file"),
-               actionButton("plothere", "Show plot in browser (only for one protein)"),
+               uiOutput("Which"),
                tags$br()
-               
              ),
              conditionalPanel(condition="$('html').hasClass('shiny-busy')",
                               tags$br(),
                               tags$br(),
                               tags$h4("Calculation in progress...")),
-             tags$div(id = "showplot")
- 
+             uiOutput("showplot")
+             
+#             tags$div(id='linkplot')
              )
   )
 )

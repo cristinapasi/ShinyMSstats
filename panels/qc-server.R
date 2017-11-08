@@ -65,10 +65,15 @@ features <- function() {
   return(n_feat)
 }
 
-# which protein to plot
+# which protein to plot (will add "all" for QCPlot)
 
 output$Which <- renderUI({
-  selectInput("which", "Select protein or show all", c("all", unique(get_data()[1])))
+  # if (input$type == "QCPlot") {
+  #   selectizeInput("which", "Show plot for", choices = c("", "all", unique(get_data()[1])))
+  # }
+  # else {
+    selectizeInput("which", "Show plot for", choices = c("", unique(get_data()[1])))
+#  }
 })
 
 ######### functions ########
@@ -99,56 +104,75 @@ preprocess_data = eventReactive(input$run, {
 
 # plot data
 
-observeEvent(input$goplot, {
-  plotresult(TRUE)  
-})
-observeEvent(input$plothere, {
-  plotresult(FALSE)  
-})
-
-plotresult <- function(saveFile) {
-  id <- as.character(UUIDgenerate(FALSE))
-  id_address <- paste("tmp/",id, sep = "")
-  path <- function()  {
+plotresult <- function(saveFile, protein) {
+  if (input$which != "") {
+    id <- as.character(UUIDgenerate(FALSE))
+    id_address <- paste("tmp/",id, sep = "")
+    path <- function()  {
+      if (saveFile) {
+        path_id = paste("www/", id_address, sep = "")
+      } 
+      else {
+        path_id = FALSE
+      }
+      return (path_id)
+    }
+    
+    plot <- dataProcessPlots(data = preprocess_data(),
+                             type=input$type,
+                             featureName = input$fname,
+                             ylimUp = F,
+                             ylimDown = F,
+                             scale = input$cond_scale,
+                             interval = input$interval,
+                             #              x.axis.size = input_xsize,
+                             #              y.axis.size = input_ysize,
+                             #              t.axis.size = input_tsize,
+                             #              text.angle = input_tangle,
+                             #              legend.size = input_legend,
+                             #              dot.size.profile = input_dot_prof,
+                             #              dot.size.condition = input_dot_cond,
+                             #              width = input_width,
+                             #              height = input_height,
+                             which.Protein = protein,
+                             originalPlot = TRUE,
+                             summaryPlot = TRUE,
+                             save_condition_plot_result = FALSE,
+                             address = path()
+    )
     if (saveFile) {
-      path_id = paste("www/", id_address, sep = "")
+      return(id_address)
     } 
     else {
-      path_id = FALSE
+      return (plot)
     }
-    return (path_id)
   }
-  
-  plot <- dataProcessPlots(data = preprocess_data(),
-                     type=input$type,
-                     featureName = input$fname,
-                     ylimUp = F,
-                     ylimDown = F,
-                     scale = input$cond_scale,
-                     interval = input$interval,
-                     #              x.axis.size = input_xsize,
-                     #              y.axis.size = input_ysize,
-                     #              t.axis.size = input_tsize,
-                     #              text.angle = input_tangle,
-                     #              legend.size = input_legend,
-                     #              dot.size.profile = input_dot_prof,
-                     #              dot.size.condition = input_dot_cond,
-                     #              width = input_width,
-                     #              height = input_height,
-                     which.Protein = input$which,
-                     originalPlot = TRUE,
-                     summaryPlot = TRUE,
-                     save_condition_plot_result = FALSE,
-                     address = path()
-                     )
-  if (saveFile) {
-    return(id_address)
-  } 
   else {
-    return (plot)
+    return(NULL)
   }
-  }
+}
+
+# statistics (for ConditionPlot)
+
+statistics <- reactive({
+  sub <- preprocess_data()$RunlevelData[which(preprocess_data()$RunlevelData$Protein == input$which),]
+  len <- aggregate(sub$LogIntensities~sub$GROUP_ORIGINAL, length, data = sub)
+  colnames(len)[colnames(len)=="sub$LogIntensities"] <- "Number_of_Measurements"
+  sd <- aggregate(sub$LogIntensities~sub$GROUP_ORIGINAL, sd, data = sub)
+  colnames(sd)[colnames(sd)=="sub$LogIntensities"] <- "Standard_Deviation"
+  mean <- aggregate(sub$LogIntensities~sub$GROUP_ORIGINAL, mean, data = sub)
+  colnames(mean)[colnames(mean)=="sub$LogIntensities"] <- "Mean"
+  tab <- merge(len, sd, by="sub$GROUP_ORIGINAL")
+  tab <- merge(mean, tab, by="sub$GROUP_ORIGINAL")
+  colnames(tab)[colnames(tab)=="sub$GROUP_ORIGINAL"] <- "Condition"
+  SE <- tab$Standard_Deviation/sqrt(tab$Number_of_Measurements)
+  tab$CI_width <- qt(.975, df=tab$Number_of_Measurement)*SE
+  CI_Limits <- c(tab$Mean-tab$CI, tab$Mean+tab$CI)
   
+  return(tab)
+})
+
+
 ######## output #######
 
 
@@ -189,48 +213,53 @@ output$summ_csv <- downloadHandler(
 
 # download/view plots
 
- observeEvent(input$goplot, {
-   insertUI(
-     selector = "#showplot",
-     ui = tags$div(
-      if (input$type == "ProfilePlot") {
-        tagList(
-          a("Open Plot", href=paste(plotresult(TRUE), "ProfilePlot.pdf", sep = ""), target="_blank"),
-          tags$br(),
-          a("Open Plot with summarization", href=paste(plotresult(TRUE),"ProfilePlot_wSummarization.pdf", sep = ""), target="_blank")
-        )
-      }
-      else if (input$type == "ConditionPlot") {
-        tagList(
-          a("Open Plot", href=paste(plotresult(TRUE),"ConditionPlot.pdf", sep = ""), target="_blank")
-        )
-      }
-      else if (input$type == "QCPlot") {
-        tagList(
-          a("Open Plot", href=paste(plotresult(TRUE),"QCPlot.pdf", sep = ""), target="_blank")
-        )
-      }
-     )
-   )
-  })
+ observeEvent(input$saveone, {
+   path <- plotresult(TRUE, input$which)
+   if (input$type == "ProfilePlot") {
+     js <- paste("window.open('", path, "ProfilePlot.pdf')", sep="")
+     shinyjs::runjs(js);
+   }
+   else if (input$type == "ConditionPlot") {
+     js <- paste("window.open('", path, "ConditionPlot.pdf')", sep="")
+     shinyjs::runjs(js);
+   }
+   else if (input$type == "QCPlot") {
+     js <- paste("window.open('", path, "QCPlot.pdf')", sep="")
+     shinyjs::runjs(js);
+   }
+ })
+   
+ observeEvent(input$saveall, {
+   path <- plotresult(TRUE, "all")
+   if (input$type == "ProfilePlot") {
+     js <- paste("window.open('", path, "ProfilePlot.pdf')", sep="")
+     shinyjs::runjs(js);
+   }
+   else if (input$type == "ConditionPlot") {
+     js <- paste("window.open('", path, "ConditionPlot.pdf')", sep="")
+     shinyjs::runjs(js);
+   }
+   else if (input$type == "QCPlot") {
+     js <- paste("window.open('", path, "QCPlot.pdf')", sep="")
+     shinyjs::runjs(js);
+   }
+ })
  
-observeEvent(input$plothere, {
-  insertUI(
-    selector = "#showplot",
-    ui = tags$div(
-    plotOutput("plot_here", hover = "hover1"),
-    verbatimTextOutput("info1")
+output$showplot <- renderUI({
+  tagList(
+    plotOutput("theplot"),
+    conditionalPanel(condition = "input.type == 'ConditionPlot' && input.which != ''",
+                     tableOutput("stats")),
+    tags$br(),
+    conditionalPanel(condition = "input.which != ''",
+                     actionButton("saveone", "Save this plot"),
+                     bsTooltip(id = "saveone", title = "Open plot as pdf.  Popups must be enabled", placement = "bottom", trigger = "hover"),
+                     actionButton("saveall", "Save all plots"),
+                     bsTooltip(id = "saveall", title = "Open pdf of all plots.  Popups must be enabled", placement = "bottom", trigger = "hover")
+                     )
     )
-  )
-  })
-    
-output$plot_here <- renderPlot(plotresult(FALSE))
-
-output$info1 <- renderText({
-  paste0(
-    "hover: ", xy_str(input$hover1)
-  )
-  
 })
 
+output$theplot <- renderPlot(plotresult(FALSE, input$which))
 
+output$stats <- renderTable(statistics())

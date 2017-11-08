@@ -1,9 +1,14 @@
+
+
 home = fluidPage(
   headerPanel("Welcome to Shiny MSstats"),
   tags$br(),
   mainPanel(
     div(tagList(
       h4("About Shiny MSstats"),
+      plotOutput("foo", click="pino", hover = "pinotti"),
+      verbatimTextOutput("gino"),
+      verbatimTextOutput("ginotti"),
       p("This is a web tool for the statistical analysis of quantitative proteomic data.  It is built based on the R package ", a("MSstats (v 3.8.3).", href="http://msstats.org/")),
       p("The full code can be accessed online at ", a("https://github.com/cristinapasi/ShinyMSstats.", href="https://github.com/cristinapasi/ShinyMSstats")),
       br(),

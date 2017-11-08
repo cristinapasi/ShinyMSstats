@@ -62,10 +62,10 @@ statmodel = fluidPage(
                                                                label = h4("Significance level"), 0.05, 0, 1 , 0.01)),
                                            column(4,
                                                   tags$br(),
-                                                  conditionalPanel(condition = "input.typeplot != 'ComparisonPlot'",
+                                                  conditionalPanel(condition = "input.typeplot == 'VolcanoPlot'",
                                                                    uiOutput("WhichComp")),
-                                                  conditionalPanel(condition = "input.typeplot == 'ComparisonPlot'",
-                                                                   uiOutput("WhichProt")),
+                                                  # conditionalPanel(condition = "input.typeplot == 'ComparisonPlot'",
+                                                  #                  uiOutput("WhichProt")),
                                                   tags$br(),
                                                   conditionalPanel(condition = "input.typeplot == 'VolcanoPlot' || input.typeplot == 'Heatmap'",
                                                                    checkboxInput("FC1", 
@@ -75,7 +75,7 @@ statmodel = fluidPage(
                                                                    tags$br(),
                                                                    selectInput("logp", 
                                                                                label = h4("Log transformation of adjusted p-value"),
-                                                                               c("base two" = "2", "base ten" = "10"), selected = "base ten"))
+                                                                               c("base two" = "2", "base ten" = "10"), selected = "10"))
                                                   ),
                                            column(4,
                                                   tags$br(),
@@ -106,7 +106,10 @@ statmodel = fluidPage(
                                        tags$h4("Calculation in progress...")),
                       tags$br(),
                       tags$br(),
-                      uiOutput("comparison_plots"))
+                      uiOutput("comparison_plots")
+#                      sliderInput("height", "Plot height", value = 400, min = 100, max = 1000, post = "px")
+                      )
+          
                
              )
     ),

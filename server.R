@@ -6,6 +6,11 @@ library(uuid)
 library(shinyjs)
 library(biomaRt)
 library(Biobase)
+library(DT)
+library(plotly)
+library(ggrepel)
+library(marray)
+library(gplots)
 
 ###### global functions ###########
 
@@ -14,6 +19,8 @@ xy_str <- function(e) {
   paste0("x=", round(e$x, 1), " y=", round(e$y, 1), "\n")
 }
 
+
+
 #####################################################
 
 
@@ -21,6 +28,8 @@ shinyServer(function(input, output, session) {
   session$allowReconnect(TRUE)
   # load data
   source("panels/loadpage-server.R", local = T)
+#  source("panels/home-server.R", local = T)
+  source("panels/utils.R", local = T)
   # quality control
   source("panels/qc-server.R", local = T)
   # statistical model
