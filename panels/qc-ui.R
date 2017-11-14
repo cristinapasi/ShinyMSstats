@@ -96,8 +96,6 @@ main = mainPanel(
                               tags$br(),
                               tags$h4("Calculation in progress...")),
              uiOutput("showplot")
-             
-#             tags$div(id='linkplot')
              )
   )
 )

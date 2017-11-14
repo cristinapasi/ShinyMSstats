@@ -1,8 +1,8 @@
 
-
 library(shiny)
 library(shinyBS)
 library(shinyjs)
+if (FALSE) require("V8")
 
 #####################################
 
@@ -79,7 +79,7 @@ shinyjs.enableTabs = function() {
 "
 
 ui <- navbarPage(
-  title = "Shiny-MSstats",
+  title = "MSstats-Shiny",
   id = "tablist",
   selected = "Homepage",
   
@@ -88,7 +88,7 @@ ui <- navbarPage(
   
   tabPanel("Homepage", icon = icon("home"), home),
   tabPanel("Load data", icon = icon("send"), loadpage),
-  tabPanel("Quality Control", icon = icon("star"), qc),
+  tabPanel("Data Processing", icon = icon("gears"), qc),
   tabPanel("Statistical Model", icon = icon("magic"), statmodel),
 #  tabPanel("Functional Analysis", icon = icon("feed"), analysis),
   tabPanel("Future Experiments", icon = icon("flask"), expdes),

@@ -11,6 +11,7 @@ library(plotly)
 library(ggrepel)
 library(marray)
 library(gplots)
+if (FALSE) require("V8")
 
 ###### global functions ###########
 
@@ -25,6 +26,7 @@ xy_str <- function(e) {
 
 
 shinyServer(function(input, output, session) {
+  options(shiny.maxRequestSize=350*1024^2) 
   session$allowReconnect(TRUE)
   # load data
   source("panels/loadpage-server.R", local = T)

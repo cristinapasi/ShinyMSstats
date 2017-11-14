@@ -5,7 +5,7 @@ output: pdf_document
 
 # Introduction
 
-This is the report of the analysis performed with the R package MSstats on the web application Shiny-MSstats (www...).
+This is the report of the analysis performed with the R package MSstats on the web application MSstats-Shiny (https://cristinapasi.shinyapps.io/Shiny-MSstats/).
 
 The original data was collected using a `r params$p1` acquisition.  
 The summary of the analysed data is:

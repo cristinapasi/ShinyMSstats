@@ -37,7 +37,8 @@ get_annot = reactive({
   if(is.null(annot)) {
     return(NULL)
   }
-  read.csv(annot$datapath)
+  annofile <- read.csv(annot$datapath)
+  return(annofile)
 })
 
 get_evidence = reactive({
@@ -64,16 +65,20 @@ get_data = reactive({
       mydata <- read.csv(infile$datapath, header = T, sep = input$sep)
     }
     else if(input$filetype == 'sky') {
+      data <- read.csv(infile$datapath, header = T, sep = input$sep, stringsAsFactors=F)
       mydata <- SkylinetoMSstatsFormat(data, annotation = get_annot())
     }
     else if(input$filetype == 'maxq') {
-      mydata <- MaxQtoMSstatsFormat(data, annotation = get_annot(), evidence = get_evidence())
+      data <- read.table(infile$datapath, header = T, sep = input$sep)
+      mydata <- MaxQtoMSstatsFormat(proteinGroups = data, annotation = get_annot(), evidence = get_evidence())
     }
     else if(input$filetype == 'prog') {
+      data <- read.csv(infile$datapath, header = T, sep = input$sep, stringsAsFactors=F)
       mydata <- ProgenesistoMSstatsFormat(data, annotation = get_annot())
     }
     else if(input$filetype == 'PD') {
-      mydata <- PDtoMSstatsFormat(data, annotation = get_annot())
+      data <- read.csv(infile$datapath, header = T, sep = input$sep)
+      mydata <- PDtoMSstatsFormat(data, annotation = get_annot(), removeProtein_with1Peptide=TRUE)
     }
     else if(input$filetype == 'spec') {
       mydata <- SpectronauttoMSstatsFormat(data)

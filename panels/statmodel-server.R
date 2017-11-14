@@ -28,10 +28,15 @@ output$WhichComp <- renderUI ({
               label = h4("which comparison to plot"), c("all", Rownames()), selected = "all")
 })
 
-# output$WhichProt <- renderUI ({
-#   selectInput("whichProt",
-#               label = h4("which protein to plot"), c("all", unique(get_data()[1])), selected = "all")
-# })
+output$WhichProt <- renderUI ({
+  selectizeInput("whichProt",
+                 label = h4("which protein to plot"), unique(get_data()[1]))
+})
+
+output$WhichProt1 <- renderUI ({
+  selectizeInput("whichProt1",
+              label = h4("which protein to plot"), c("", unique(get_data()[1])))
+})
 
 
 ########## functions ########
@@ -73,10 +78,16 @@ data_comparison <- eventReactive(input$calculate, {
   groupComparison(contrast.matrix = matrix_build(), data = preprocess_data())
 })
 
+round_df <- function(df) {
+  nums <- vapply(df, is.numeric, FUN.VALUE = logical(1))
+  
+  df[,nums] <- round(df[,nums], digits = 4)
+  
+  (df)
+}
+
 SignificantProteins <- reactive({with(data_comparison(),
-                                      table <- ComparisonResult[ComparisonResult$adj.pvalue < input$signif, ],
-                                      round(table[,3:5], digits = 4))
-  table
+                                      round_df(ComparisonResult[ComparisonResult$adj.pvalue < input$signif, ]))
   
 })
 
@@ -131,7 +142,7 @@ group_comparison <- function(saveFile1) {
                                 #                     height=input_h, 
                                 #                     width=input_w, 
                                 which.Comparison=input$whichComp,
-                                # which.Protein = input$whichProt,
+                                which.Protein = input$whichProt,
                                 address=path1()
   )
   if(saveFile1) {
@@ -144,22 +155,36 @@ group_comparison <- function(saveFile1) {
 
 # model assumptions plots
 
-assumptions1 <- eventReactive(input$plot_assumptions, {
-  # normal quantile-quantile plots
-  id2 <- as.character(UUIDgenerate(FALSE))
-  id_address2 <- paste("tmp/",id2, sep = "")
-  path2 = paste("www/", id_address2, sep = "")
-  QQ <- modelBasedQCPlots(data=data_comparison(), type="QQPlots", address = path2)
-  return(id_address2)
-})
-assumptions2 <- eventReactive(input$plot_assumptions, {
-  # residual plots
-  id3 <- as.character(UUIDgenerate(FALSE))
-  id_address3 <- paste("tmp/",id3, sep = "")
-  path3 = paste("www/", id_address3, sep = "")
-  RES <- modelBasedQCPlots(data=data_comparison(), type="ResidualPlots", address = path3)
-  return(id_address3)
-})
+
+assumptions1 <- function(saveFile3, protein) {
+  if (input$whichProt1 != "") {
+    id2 <- as.character(UUIDgenerate(FALSE))
+    id_address2 <- paste("tmp/",id2, sep = "")
+    path2 <- function()  {
+      if (saveFile3) {
+        path_id2 = paste("www/", id_address2, sep = "")
+      } 
+      else {
+        path_id2 = FALSE
+      }
+      return (path_id2)
+    }
+    
+    plots <- modelBasedQCPlots(data=data_comparison(), type=input$assum_type, which.Protein = protein, address = path2())
+    
+    if(saveFile3) {
+      return(id_address2)
+    }
+    else {
+      return(plots)
+    }
+  }
+  else {
+    return(NULL)
+  }
+}
+  
+
 
 ########## output ##########
 
@@ -223,14 +248,7 @@ output$table_results <- renderUI({
 
 output$significant <- renderDataTable({
   SignificantProteins()
-
-#  print(colnames(table))
-#  formatRound(table, columns = table[,3], digits = 4)
 }
-# filter = "top",
-# rownames = FALSE 
- 
-
 )
 
 # number of significant proteins
@@ -281,19 +299,49 @@ output$info2 <- renderPrint({
   print(nearPoints(plotset(), input$click1, xvar = "logFC", yvar = "logadj.pvalue"))
   })
   
+# Assumption plots in browser
+
+output$verify <- renderUI ({
+  tagList(
+    plotOutput("assum_plots"),
+    conditionalPanel(condition = "input.whichProt1 != ''",
+                     actionButton("saveone1", "Save this plot"),
+                     bsTooltip(id = "saveone1", title = "Open plot as pdf.  Popups must be enabled", placement = "bottom", trigger = "hover"),
+                     actionButton("saveall1", "Save all plots"),
+                     bsTooltip(id = "saveall1", title = "Open pdf of all plots.  Popups must be enabled", placement = "bottom", trigger = "hover")
+    )
+  )
+})
+
+output$assum_plots <- renderPlot({
+  assumptions1(FALSE, input$whichProt1)})
+
 
 # downloads
+observeEvent(input$saveone1, {
+  path <- assumptions1(TRUE, input$whichProt1)
+  if (input$assum_type == "QQPlots") {
+    js <- paste("window.open('", path, "QQPlot.pdf')", sep="")
+    shinyjs::runjs(js);
+  }
+  else if (input$type == "ResidualPlots") {
+    js <- paste("window.open('", path, "ResidualPlots.pdf')", sep="")
+    shinyjs::runjs(js);
+  }
+})
 
-output$verify <- renderUI({
-  assumptions1()
-  assumptions2()
-  tagList(
-    a("Open QQ-Plot", href=paste(assumptions1(),"QQPlot.pdf", sep = ""), target="_blank"),
-    tags$br(),
-    a("Open Residual Plot", href=paste(assumptions2(),"ResidualPlot.pdf", sep = ""), target="_blank")
-  )
-}
-)
+observeEvent(input$saveall1, {
+  path <- assumptions1(TRUE, "all")
+  if (input$assum_type == "QQPlots") {
+    js <- paste("window.open('", path, "QQPlot.pdf')", sep="")
+    shinyjs::runjs(js);
+  }
+  else if (input$type == "ResidualPlots") {
+    js <- paste("window.open('", path, "ResidualPlots.pdf')", sep="")
+    shinyjs::runjs(js);
+  }
+})
+
 
 output$download_compar <- downloadHandler(
   filename = function() {

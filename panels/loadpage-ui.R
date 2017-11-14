@@ -48,6 +48,9 @@ loadpage = fluidPage(
   sbp_load,
   column(width = 8,
          h4("Summary of the data"),
+         conditionalPanel(condition="$('html').hasClass('shiny-busy')",
+                          tags$br(),
+                          tags$h4("Calculation in progress...")),
          verbatimTextOutput('summary'),
          tags$br(),
          verbatimTextOutput('summary1')
