@@ -15,6 +15,10 @@ output$choice2 <- renderUI({
   selectInput("group2", "Group 2", choices())
 })
 
+output$choice3 <- renderUI({
+  selectInput("group3", "", choices())
+})
+
 # rownames for matrix
 
 Rownames <- reactive({
@@ -43,32 +47,77 @@ output$WhichProt1 <- renderUI ({
 
 # build matrix
 
-matrix_build <- eventReactive(input$submit, {
-  validate(
-    need(input$group1 != input$group2, "Please select different groups")
-  )
-  index1 <- reactive({which(choices() == input$group1)})
-  index2 <- reactive({which(choices() == input$group2)})
-  comp_list$dList <- c(isolate(comp_list$dList), paste(input$group1, "vs", input$group2, sep = " "))
-  contrast$row <- matrix(row(), nrow=1)
-  contrast$row[index1()] = 1
-  contrast$row[index2()] = -1
-  if (is.null(contrast$matrix)) {
-    contrast$matrix <- contrast$row 
-  } 
-  else {
-    contrast$matrix <- rbind(contrast$matrix, contrast$row)
-    contrast$matrix <- rbind(contrast$matrix[!duplicated(contrast$matrix),])
+matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2, {
+  if(input$def_comp == "custom") {
+    validate(
+      need(input$group1 != input$group2, "Please select different groups")
+    )
+    index1 <- reactive({which(choices() == input$group1)})
+    index2 <- reactive({which(choices() == input$group2)})
+    comp_list$dList <- c(isolate(comp_list$dList), paste(input$group1, "vs", input$group2, sep = " "))
+    contrast$row <- matrix(row(), nrow=1)
+    contrast$row[index1()] = 1
+    contrast$row[index2()] = -1
+    if (is.null(contrast$matrix)) {
+      contrast$matrix <- contrast$row 
+    } 
+    else {
+      contrast$matrix <- rbind(contrast$matrix, contrast$row)
+      contrast$matrix <- rbind(contrast$matrix[!duplicated(contrast$matrix),])
+    }
+    rownames(contrast$matrix) <- comp_list$dList
+    colnames(contrast$matrix) <- choices()
   }
-  row.names(contrast$matrix) <- comp_list$dList
-  colnames(contrast$matrix) <- choices()
+  else if (input$def_comp == "all_one") {
+    for (index in 1:length(choices())) {
+      index3 <- reactive({which(choices() == input$group3)})
+      if(index == index3()) next
+      comp_list$dList <- c(isolate(comp_list$dList), paste(index, "vs", input$group3, sep = " "))
+      contrast$row <- matrix(row(), nrow=1)
+      contrast$row[index] = 1
+      contrast$row[index3()] = -1
+      if (is.null(contrast$matrix)) {
+        contrast$matrix <- contrast$row 
+      } 
+      else {
+        contrast$matrix <- rbind(contrast$matrix, contrast$row)
+      }
+      rownames(contrast$matrix) <- comp_list$dList
+      colnames(contrast$matrix) <- choices()
+    }
+  }
+  else if (input$def_comp == "all_pair") {
+    for (index in 1:length(choices())) {
+      for (index1 in 1:length(choices())) {
+        if (index == index1) next
+        if (index < index1) {
+          comp_list$dList <- c(isolate(comp_list$dList), paste(index, "vs", index1, sep = " "))
+          contrast$row <- matrix(row(), nrow=1)
+          contrast$row[index] = 1
+          contrast$row[index1] = -1
+          if (is.null(contrast$matrix)) {
+            contrast$matrix <- contrast$row 
+          } 
+          else {
+            contrast$matrix <- rbind(contrast$matrix, contrast$row)
+            contrast$matrix <- rbind(contrast$matrix[!duplicated(contrast$matrix),])
+          }
+          rownames(contrast$matrix) <- comp_list$dList
+          colnames(contrast$matrix) <- choices()
+        }
+      }
+    }
+  }
+  
   return(contrast$matrix)
 })
 
 # clear matrix
 
-observeEvent(input$clear, {
-  comp_list$dList <- ""
+observeEvent({input$clear
+  input$clear1
+  input$clear2},  {
+  comp_list$dList <- NULL
   contrast$matrix <- NULL
 })
 
@@ -366,13 +415,16 @@ observeEvent(input$plotresults, {
     selector = "#comparison_plots",
     ui=tags$div(
       if (input$typeplot == "VolcanoPlot") {
-        a("Open Volcano Plot", href=paste(group_comparison(TRUE),"VolcanoPlot.pdf", sep = ""), target="_blank")
+        js <- paste("window.open('", group_comparison(TRUE), "VolcanoPlot.pdf')", sep="")
+        shinyjs::runjs(js);
       }
       else if (input$typeplot == "Heatmap") {
-        a("Open Heatmap", href=paste(group_comparison(TRUE),"Heatmap.pdf", sep = ""), target="_blank")
+        js <- paste("window.open('", group_comparison(TRUE), "Heatmap.pdf')", sep="")
+        shinyjs::runjs(js);
       }
       else if (input$typeplot == "ComparisonPlot") {
-        a("Open Comparison Plot", href=paste(group_comparison(TRUE),"ComparisonPlot.pdf", sep = ""), target="_blank")
+        js <- paste("window.open('", group_comparison(TRUE), "ComparisonPlot.pdf')", sep="")
+        shinyjs::runjs(js);
       }
     )
   )

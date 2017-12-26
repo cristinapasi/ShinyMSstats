@@ -16,12 +16,25 @@ statmodel = fluidPage(
                         h3("STEP 1 - Define comparisons", tipify(icon("question-circle"), title="Choose pairwise comparisons to find significantly expressed proteins")),
                         fluidRow(
                           column(6,
-                                 uiOutput('choice1'),
-                                 h6("vs"),
-                                 uiOutput("choice2"),
-                                 actionButton("submit", "Submit"),
-                                 actionButton("clear", "Clear matrix")
-                          ),
+                                 radioButtons("def_comp", "Define contrast matrix", c("All possible pairwise comparisons" = "all_pair", "Compare all against one" = "all_one", "Create custom comparisons" = "custom"), selected = character(0)),
+                                 conditionalPanel(condition = "input.def_comp == 'custom'",
+                                                  uiOutput('choice1'),
+                                                  h6("vs"),
+                                                  uiOutput("choice2"),
+                                                  actionButton("submit", "Submit"),
+                                                  actionButton("clear", "Clear matrix")
+                                                  ),
+                                 conditionalPanel(condition = "input.def_comp == 'all_one'",
+                                                  h5("Compare all groups against:"),
+                                                  uiOutput("choice3"),
+                                                  actionButton("submit1", "Submit"),
+                                                  actionButton("clear1", "Clear matrix")
+                                                  ),
+                                 conditionalPanel(condition = "input.def_comp == 'all_pair'",
+                                                  actionButton("submit2", "Submit"),
+                                                  actionButton("clear2", "Clear matrix")
+                                                  )
+                                 ),
                           column(6,
                                  sliderInput("signif", 
                                              label = h4("Significance level", tipify(icon("question-circle"), title="Probability of rejecting the null hypothesis given that it is true (probability of type I error)")) , 0, 1, 0.05),
