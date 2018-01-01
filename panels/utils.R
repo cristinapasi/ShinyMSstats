@@ -1,4 +1,3 @@
-
 #############################################
 ## groupComparisonPlots
 #############################################
@@ -30,7 +29,8 @@ groupComparisonPlots2 <- function(data=data,
                                  height=10, 
                                  which.Comparison="all", 
                                  which.Protein="all",
-                                 address="") {
+                                 address="",
+                                 savePDF=FALSE) {
   
   ## save process output in each step
   allfiles <- list.files()
@@ -678,8 +678,12 @@ groupComparisonPlots2 <- function(data=data,
         legend.text = element_text(size=legend.size),
         legend.title = element_blank()
       )
-      
-      return(pfinal)
+      if(savePDF) {
+        print(ptemp)
+      }
+      else {
+        return(ptemp)
+      }
     } ## end-loop
     
     if (address!=FALSE) dev.off()
@@ -797,7 +801,12 @@ groupComparisonPlots2 <- function(data=data,
         ptemp <- ptemp+scale_y_continuous("Log10-Fold Change", limits=c(y.limdown, y.limup))
       }
       
-      return(ptemp)
+      if(savePDF) {
+        print(ptemp)
+      }
+      else {
+        return(ptemp)
+      }
       
       message(paste("Drew compasison plot for ", unique(sub$PROTEIN), "(", i, " of ", length(unique(datatemp$Protein)), ")"))
       

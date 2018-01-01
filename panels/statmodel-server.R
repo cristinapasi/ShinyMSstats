@@ -25,7 +25,7 @@ Rownames <- reactive({
   rownames(matrix_build())
 })
 
-# choices of comparisons to plot
+# choices of comparisons/proteins to plot
 
 output$WhichComp <- renderUI ({
   selectInput("whichComp", 
@@ -47,7 +47,13 @@ output$WhichProt1 <- renderUI ({
 
 # build matrix
 
+observeEvent(input$def_comp, {
+  contrast$matrix <- NULL
+  comp_list$dList <- NULL
+})
+
 matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2, {
+  req(input$def_comp)
   if(input$def_comp == "custom") {
     validate(
       need(input$group1 != input$group2, "Please select different groups")
@@ -87,6 +93,7 @@ matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2, {
     }
   }
   else if (input$def_comp == "all_pair") {
+    contrast$matrix <- NULL
     for (index in 1:length(choices())) {
       for (index1 in 1:length(choices())) {
         if (index == index1) next
@@ -142,25 +149,25 @@ SignificantProteins <- reactive({with(data_comparison(),
 
 # comparison plots
 
-observeEvent(input$plotresults, {
-  if(input$typeplot != "ComparisonPlot") {
-    group_comparison(TRUE)
-  }
-  else {
-    group_comparison(TRUE)
-  }
-})
+# observeEvent(input$plotresults, {
+#   if(input$typeplot != "ComparisonPlot") {
+#     group_comparison(TRUE)
+#   }
+#   else {
+#     group_comparison(TRUE)
+#   }
+# })
+# 
+# observeEvent(input$viewresults, {
+#   if(input$typeplot != "ComparisonPlot") {
+#     group_comparison(TRUE)
+#   }
+#   else {
+#     group_comparison(TRUE)
+#   } 
+# })
 
-observeEvent(input$viewresults, {
-  if(input$typeplot != "ComparisonPlot") {
-    group_comparison(TRUE)
-  }
-  else {
-    group_comparison(TRUE)
-  } 
-})
-
-group_comparison <- function(saveFile1) {
+group_comparison <- function(saveFile1, pdf) {
   id1 <- as.character(UUIDgenerate(FALSE))
   id_address1 <- paste("tmp/",id1, sep = "")
   path1 <- function() {
@@ -192,7 +199,8 @@ group_comparison <- function(saveFile1) {
                                 #                     width=input_w, 
                                 which.Comparison=input$whichComp,
                                 which.Protein = input$whichProt,
-                                address=path1()
+                                address=path1(),
+                                savePDF=pdf
   )
   if(saveFile1) {
     return(id_address1)
@@ -308,6 +316,10 @@ output$number <- renderText({
 
 # plot in browser 
 
+observeEvent(input$typeplot, {
+  updateSelectInput(session, "whichComp", selected = "all")
+})
+
 observeEvent(input$viewresults, {
   insertUI(
     selector = "#comparison_plots",
@@ -323,8 +335,10 @@ observeEvent(input$viewresults, {
 }
 )
 
+
+
 observe ({output$comp_plots <- renderPlot({
-  group_comparison(FALSE)}, height = input$height
+  group_comparison(FALSE, FALSE)}, height = input$height
   )
 })
 
@@ -415,15 +429,15 @@ observeEvent(input$plotresults, {
     selector = "#comparison_plots",
     ui=tags$div(
       if (input$typeplot == "VolcanoPlot") {
-        js <- paste("window.open('", group_comparison(TRUE), "VolcanoPlot.pdf')", sep="")
+        js <- paste("window.open('", group_comparison(TRUE, TRUE), "VolcanoPlot.pdf')", sep="")
         shinyjs::runjs(js);
       }
       else if (input$typeplot == "Heatmap") {
-        js <- paste("window.open('", group_comparison(TRUE), "Heatmap.pdf')", sep="")
+        js <- paste("window.open('", group_comparison(TRUE, TRUE), "Heatmap.pdf')", sep="")
         shinyjs::runjs(js);
       }
       else if (input$typeplot == "ComparisonPlot") {
-        js <- paste("window.open('", group_comparison(TRUE), "ComparisonPlot.pdf')", sep="")
+        js <- paste("window.open('", group_comparison(TRUE, TRUE), "ComparisonPlot.pdf')", sep="")
         shinyjs::runjs(js);
       }
     )

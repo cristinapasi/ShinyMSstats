@@ -81,6 +81,7 @@ main = mainPanel(
                selectInput("type",
                            label = h5("Select plot type", tipify(icon("question-circle"), title = "Use Profile Plots to view technical/biological variability and missing values; use Condition Plots to view differences in intensity between conditions; use QC Plots to view differences between runs and to check the effects of normalization")), c("Show Profile plots"="ProfilePlot","Show Condition plot"="ConditionPlot","Show QC plots"="QCPlot")),
                conditionalPanel(condition = "input.type == 'ProfilePlot'",
+                                checkboxInput("summ", "Show plot with summary"),
                                 selectInput("fname",  
                                             label = h5("Feature legend", tipify(icon("question-circle"), title = "Print feature level at transition level, peptide level or choose no feature legend")), c("Transition level"="Transition", "Peptide level"="Peptide", "No feature legend"="NA"))
                ),

@@ -68,12 +68,12 @@ features <- function() {
 # which protein to plot (will add "all" for QCPlot)
 
 output$Which <- renderUI({
-  # if (input$type == "QCPlot") {
-  #   selectizeInput("which", "Show plot for", choices = c("", "all", unique(get_data()[1])))
-  # }
-  # else {
+  if (input$type == "QCPlot") {
+    selectizeInput("which", "Show plot for", choices = c("", "ALL PROTEINS" = "allonly", unique(get_data()[1])))
+  }
+  else {
     selectizeInput("which", "Show plot for", choices = c("", unique(get_data()[1])))
-#  }
+  }
 })
 
 ######### functions ########
@@ -104,7 +104,7 @@ preprocess_data = eventReactive(input$run, {
 
 # plot data
 
-plotresult <- function(saveFile, protein) {
+plotresult <- function(saveFile, protein, summary, original) {
   if (input$which != "") {
     id <- as.character(UUIDgenerate(FALSE))
     id_address <- paste("tmp/",id, sep = "")
@@ -135,8 +135,8 @@ plotresult <- function(saveFile, protein) {
                              #              width = input_width,
                              #              height = input_height,
                              which.Protein = protein,
-                             originalPlot = TRUE,
-                             summaryPlot = TRUE,
+                             originalPlot = original,
+                             summaryPlot = summary,
                              save_condition_plot_result = FALSE,
                              address = path()
     )
@@ -214,7 +214,7 @@ output$summ_csv <- downloadHandler(
 # download/view plots
 
  observeEvent(input$saveone, {
-   path <- plotresult(TRUE, input$which)
+   path <- plotresult(TRUE, input$which, FALSE, TRUE)
    if (input$type == "ProfilePlot") {
      js <- paste("window.open('", path, "ProfilePlot.pdf')", sep="")
      shinyjs::runjs(js);
@@ -230,7 +230,7 @@ output$summ_csv <- downloadHandler(
  })
    
  observeEvent(input$saveall, {
-   path <- plotresult(TRUE, "all")
+   path <- plotresult(TRUE, "all", FALSE, TRUE)
    if (input$type == "ProfilePlot") {
      js <- paste("window.open('", path, "ProfilePlot.pdf')", sep="")
      shinyjs::runjs(js);
@@ -260,6 +260,16 @@ output$showplot <- renderUI({
     )
 })
 
-output$theplot <- renderPlot(plotresult(FALSE, input$which))
+theplot <- reactive({
+  if (input$summ == FALSE) {
+    output <- plotresult(FALSE, input$which, FALSE, TRUE)
+  }
+  else if (input$summ == TRUE) {
+    output <- plotresult(FALSE, input$which, TRUE, FALSE)
+  } 
+  return (output)
+})
+
+output$theplot <- renderPlot(theplot())
 
 output$stats <- renderTable(statistics())

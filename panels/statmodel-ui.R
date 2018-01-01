@@ -21,7 +21,7 @@ statmodel = fluidPage(
                                                   uiOutput('choice1'),
                                                   h6("vs"),
                                                   uiOutput("choice2"),
-                                                  actionButton("submit", "Submit"),
+                                                  actionButton("submit", "Add"),
                                                   actionButton("clear", "Clear matrix")
                                                   ),
                                  conditionalPanel(condition = "input.def_comp == 'all_one'",
@@ -101,7 +101,9 @@ statmodel = fluidPage(
                                                                                c("protein dendogram" = "protein", "comparison dendogram" = "comparison", "protein and comparison dendograms" = "both"))),
                                                   conditionalPanel(condition = "input.typeplot == 'VolcanoPlot'",
                                                                    checkboxInput("pname", 
-                                                                                 label = h5("display protein name")))
+                                                                                 label = h5("display protein name"))),
+                                                  conditionalPanel(condition = "input.typeplot == 'ComparisonPlot'",
+                                                                   uiOutput("WhichComp1"))
                                                   )
                                          ),
                         actionButton("plotresults", "Save Plot Results as pdf"),
