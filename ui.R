@@ -2,6 +2,7 @@
 library(shiny)
 library(shinyBS)
 library(shinyjs)
+library(STRINGdb)
 if (FALSE) require("V8")
 
 #####################################
@@ -53,7 +54,7 @@ source("panels/loadpage-ui.R", local = T)
 source("panels/qc-ui.R", local = T)
 source("panels/statmodel-ui.R", local = T)
 source("panels/expdes-ui.R", local = T)
-#source("panels/analysis-ui.R", local = T)
+source("panels/analysis-ui.R", local = T)
 source("panels/report-ui.R", local = T)
 source("panels/help-ui.R", local = T)
 
@@ -90,7 +91,7 @@ ui <- navbarPage(
   tabPanel("Load data", icon = icon("send"), loadpage),
   tabPanel("Data Processing", icon = icon("gears"), qc),
   tabPanel("Statistical Model", icon = icon("magic"), statmodel),
-#  tabPanel("Functional Analysis", icon = icon("feed"), analysis),
+  tabPanel("Functional Analysis", icon = icon("bar-chart"), analysis),
   tabPanel("Future Experiments", icon = icon("flask"), expdes),
   tabPanel("Download Report", icon = icon("download"), report),
   tabPanel("Help", icon = icon("ambulance"), help),

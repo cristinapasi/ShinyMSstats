@@ -11,6 +11,7 @@ library(plotly)
 library(ggrepel)
 library(marray)
 library(gplots)
+library(STRINGdb)
 if (FALSE) require("V8")
 
 ###### global functions ###########
@@ -37,7 +38,7 @@ shinyServer(function(input, output, session) {
   # statistical model
   source("panels/statmodel-server.R", local = T)
   # functional analysis
-#  source("panels/analysis-server.R", local = T)
+  source("panels/analysis-server.R", local = T)
   # future experiment
   source("panels/expdes-server.R", local = T)
   # report

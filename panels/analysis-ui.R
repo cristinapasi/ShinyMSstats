@@ -1,35 +1,98 @@
-side = sidebarPanel(
+main = mainPanel(
   tabsetPanel(
     tabPanel("Abundance",
-             h4("Download summary of protein abundance", tipify(icon("question-circle"), title="Model-based quantification for each condition or for each biological samples per protein in a targeted Selected Reaction Monitoring (SRM), Data-Dependent Acquisition (DDA or shotgun), and Data-Independent Acquisition (DIA or SWATH-MS) experiment. ")),
-             radioButtons("typequant", 
-                          label = h4("Type of summarisation"), 
-                          c("Sample-level summarisation" = "Sample", "Group-level summarisation" = "Group")),
-             radioButtons("format", "Save as", c("matrix" = "matrix", "array" = "long")),
-             downloadButton("download_summary", "Download")
+             fluidRow(
+               column(5,
+                      wellPanel(
+                        fluidRow(
+                          h4("Download summary of protein abundance", tipify(icon("question-circle"), title="Model-based quantification for each condition or for each biological samples per protein in a targeted Selected Reaction Monitoring (SRM), Data-Dependent Acquisition (DDA or shotgun), and Data-Independent Acquisition (DIA or SWATH-MS) experiment. ")),
+                          radioButtons("typequant", 
+                                       label = h4("Type of summarisation"), 
+                                       c("Sample-level summarisation" = "Sample", "Group-level summarisation" = "Group")),
+                          radioButtons("format", "Save as", c("matrix" = "matrix", "array" = "long")),
+                          downloadButton("download_summary", "Download")
+                        )
+                      )
+               ),
+               column(7,
+                      h4("Table of abundance"),
+                      dataTableOutput("abundance")
+                      )
+             )
     ),
     tabPanel("Annotation",
-             h4("Functional analysis"),
-             tags$br(),
-             h4("Select species", tipify(icon("question-circle"), title = "Select species to access database on Ensembl")),
-             uiOutput("Species"),
-             tags$br(),
-             h4("Select input type", tipify(icon("question-circle"), title = "Select id type for proteins in dataset")),
-             uiOutput("Filter"),
-             tags$br(),
-             h4("Select attributes to retreive", tipify(icon("question-circle"),title = "Select query output, multiple selections are allowed")),
-             h5("es. go_id, goslim_goa_description etc"),
-             uiOutput("Attributes"),
-             downloadButton("table_annot", "Download table of annotations")
-    )
+             fluidRow(
+               column(5,
+                      wellPanel(
+                        fluidRow(
+                          h4("Functional annotation"),
+                          tags$br(),
+                          h4("Select species", tipify(icon("question-circle"), title = "Select species to access database on Ensembl")),
+                          uiOutput("Species"),
+                          tags$br(),
+                          h4("Select input type", tipify(icon("question-circle"), title = "Select id type for proteins in dataset")),
+                          uiOutput("Filter"),
+                          tags$br(),
+                          h4("Select attributes to retreive", tipify(icon("question-circle"),title = "Select query output, multiple selections are allowed")),
+                          h5("es. go_id, goslim_goa_description etc"),
+                          uiOutput("Attributes"),
+                          downloadButton("table_annot", "Download table of annotations")
+                        )
+                      )
+               ),
+               column(7,
+                      h4("Table of annotation"),
+                      tableOutput("annotation")
+               )
+             )
+    ),
+    tabPanel("Protein-Protein Interaction",
+             fluidRow(
+               column(5,
+                      wellPanel(
+                        fluidRow(
+                          h4("Protein Interaction Analysis"),
+                          tags$br(),
+                          h4("Select Species"),
+                          uiOutput("Species1"),
+                          tags$br(),
+                          sliderInput("score_t", 
+                                      label = h5("Score threshold", 
+                                                 tipify(icon("question-circle"),
+                                                        title = "threshold for the combined scores of the interactions",
+                                                        placement = "top")),
+                                      min = 0, max = 1000, value = 400),
+                          actionButton("interact", "Plot interactions")
+                        )
+                      )),
+               column(7,
+                      h4("Network of interactions"),
+                      numericInput("hits", 
+                                   label = h5("Number of hits",
+                                              tipify(icon("question-circle"),
+                                                     title = "Number of hits to plot",
+                                                     placement = "bottom")),
+                                   value = 200, min = 0, max = 400),
+                      conditionalPanel(condition="$('html').hasClass('shiny-busy')",
+                                       tags$br(),
+                                       tags$h4("Calculation in progress (it may take a while)...")),
+                      tags$br(),
+                      plotOutput("network"),
+                      tags$br(),
+                      tags$br(),
+                      tags$br(),
+                      tags$br(),
+                      tags$br(),
+                      tags$br(),
+                      tags$br(),
+                      textOutput("link"),
+                      uiOutput("string_link")
+               )
+             )
+             )
   )
 )
-
-main_p = mainPanel(
-  h4("Table of annotation"),
-  tableOutput("annotation")
-  
-)
+               
 
 
 ##############################################################
@@ -38,6 +101,5 @@ analysis = fluidPage(
   headerPanel("Functional analysis"),
   p("Download summary of protein abundance or perform queries to ", a("Ensembl", href="http://www.ensembl.org/index.html"), "."),
   tags$br(),
-  side,
-  main_p
+  main
 )
