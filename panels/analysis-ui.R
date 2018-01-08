@@ -46,7 +46,7 @@ main = mainPanel(
                )
              )
     ),
-    tabPanel("Protein-Protein Interaction",
+    tabPanel("Interaction Network",
              fluidRow(
                column(5,
                       wellPanel(
@@ -67,12 +67,7 @@ main = mainPanel(
                       )),
                column(7,
                       h4("Network of interactions"),
-                      numericInput("hits", 
-                                   label = h5("Number of hits",
-                                              tipify(icon("question-circle"),
-                                                     title = "Number of hits to plot",
-                                                     placement = "bottom")),
-                                   value = 200, min = 0, max = 400),
+                      uiOutput("Hits"),
                       conditionalPanel(condition="$('html').hasClass('shiny-busy')",
                                        tags$br(),
                                        tags$h4("Calculation in progress (it may take a while)...")),

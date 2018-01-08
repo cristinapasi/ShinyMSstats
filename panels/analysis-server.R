@@ -130,15 +130,27 @@ example1_mapped <- reactive({
   string_db()$map(tomap(), "protein", removeUnmappedRows = TRUE )
 })
 
-hits <- reactive({
-  example1_mapped()$STRING_id[1:input$hits]})
+output$Hits <- renderUI({
+  req(SignificantProteins)
+  max <- reactive({nrow(SignificantProteins())})
+  numericInput("hits", 
+               label = h5("Number of hits",
+                          tipify(icon("question-circle"),
+                                 title = "Number of hits to plot",
+                                 placement = "bottom")),
+               value = max(), min = 0, max = max())
+})
+
+
+hits <- function(){
+  example1_mapped()$STRING_id[1:input$hits]}
 
 observeEvent(input$interact, {
   output$network <- renderPlot(
     string_db()$plot_network(hits()), width = 600, height = 600)
-  output$link <- renderText(
-    string_db()$get_link(hits())
-  )
+  # output$link <- renderText(
+  #   string_db()$get_link(hits())
+  # )
   output$string_link <- renderUI({
     actionButton("redirect", "Open plot with STRING")
   })
@@ -146,12 +158,13 @@ observeEvent(input$interact, {
 
 
 URL <- function(){
-  address <- ""
-  for (p in hits()[!is.na(hits())]) {
-    address <- paste(address, p, "%0D%0A", sep = "", collapse = "")
-  }
-  address <- paste("http://version10.5.string-db.org/newstring_cgi/show_network_section.pl?limit=0&targetmode=proteins&caller_identity=gene_cards&network_flavor=evidence&identifiers=", address, "&species=", entry(), collapse = "", sep = "")
-  return(address)
+  string_db()$get_link(hits())
+  # address <- ""
+  # for (p in hits()[!is.na(hits())]) {
+  #   address <- paste(address, p, "%0D%0A", sep = "", collapse = "")
+  # }
+  # address <- paste("http://version10.5.string-db.org/newstring_cgi/show_network_section.pl?limit=0&targetmode=proteins&caller_identity=gene_cards&network_flavor=evidence&identifiers=", address, "&species=", entry(), collapse = "", sep = "")
+  # return(address)
 }
 
 
