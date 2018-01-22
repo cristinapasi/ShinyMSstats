@@ -39,6 +39,8 @@ shinyServer(function(input, output, session) {
   source("panels/statmodel-server.R", local = T)
   # functional analysis
   source("panels/analysis-server.R", local = T)
+  # clustering/classification
+  source("panels/clust-server.R", local = T)
   # future experiment
   source("panels/expdes-server.R", local = T)
   # report

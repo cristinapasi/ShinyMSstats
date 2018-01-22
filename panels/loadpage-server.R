@@ -54,7 +54,15 @@ get_data = reactive({
     return(NULL)
     }
   if(input$filetype == 'sample') {
-    mydata <- read.csv("dataset.csv", header = T, sep = ";")
+    if(input$DDA_DIA == "SRM_PRM") {
+      mydata <- SRMRawData
+    }
+    else if(input$DDA_DIA == "DDA") {
+      mydata <- DDARawData
+    }
+    else if(input$DDA_DIA == "DIA")
+      mydata <- DIARawData
+#    mydata <- read.csv("dataset.csv", header = T, sep = ";")
     }
   else {
     infile <- input$data
