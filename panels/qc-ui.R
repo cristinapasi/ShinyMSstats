@@ -4,12 +4,12 @@ sbp_params = sidebarPanel(
   
   # transformation
   radioButtons("log", 
-               label= h4("STEP 1 - log transformation", tipify(icon("question-circle"), title = "Logarithmic transformation is applied to the Intensities column")), c(log2 = "2", log10 = "10")),
+               label= h4("STEP (i) - log transformation", tipify(icon("question-circle"), title = "Logarithmic transformation is applied to the Intensities column")), c(log2 = "2", log10 = "10")),
   tags$hr(),
   
   #normalisation
   selectInput("norm", 
-              label = h4("STEP 2 - normalisation", tipify(icon("question-circle"), title = "Choose a normalisation method.  For more information visit the Help tab")), c("none" = "FALSE", "equalize medians" = "equalizeMedians", "quantile" = "quantile", "global standards" = "globalStandards"), selected = "equalizeMedians"),
+              label = h4("STEP (ii) - normalisation", tipify(icon("question-circle"), title = "Choose a normalisation method.  For more information visit the Help tab")), c("none" = "FALSE", "equalize medians" = "equalizeMedians", "quantile" = "quantile", "global standards" = "globalStandards"), selected = "equalizeMedians"),
   conditionalPanel(condition = "input.norm == 'globalStandards'",
                    radioButtons("standards", "Choose type of standards", c("Proteins", "Peptides")),
                    uiOutput("Names")
@@ -17,7 +17,7 @@ sbp_params = sidebarPanel(
   tags$hr(),
   
   ### summary method
-  h4("STEP 3 - summarization", tipify(icon("question-circle"), title = "Run-level summarization method")),
+  h4("STEP (iii) - summarization", tipify(icon("question-circle"), title = "Run-level summarization method")),
   p("method: TMP"),
   p("For linear summarzation please use command line"),
   tags$hr(),
@@ -27,7 +27,7 @@ sbp_params = sidebarPanel(
   tags$hr(),
   
   ### censoring
-  h4("STEP 4 - Censored values"),
+  h4("STEP (iv) - Censored values"),
   radioButtons('censInt', 
               label = h5("Assumptions for censored data", tipify(icon("question-circle"), title = "Processing software report missing values differently; please choose the appropriate options to distinguish missing values and if censored/at random")), c("assume all NA as censored" = "NA", "assume all between 0 and 1 as censored" = "0", "all missing values are random" = "null"), selected = "NA"),
   radioTooltip(id = "censInt", choice = "NA", title = "It assumes that all NAs in Intensity column are censored.", placement = "right", trigger = "hover"),
@@ -40,7 +40,7 @@ sbp_params = sidebarPanel(
   
   # max quantile for censored
   h5("Max quantile for censored"),
-  checkboxInput("null", "NULL"),
+  checkboxInput("null", "Do not apply censored cutoff"),
   numericInput("maxQC", NULL, 0.999, 0.000, 1.000, 0.001),
   
   # MBi
@@ -52,7 +52,7 @@ sbp_params = sidebarPanel(
   
   # features
   
-  h4("STEP 5 - Used features"),
+  h4("STEP (v) - Used features"),
   checkboxInput("all_feat", "Use all features", value = TRUE),
   uiOutput("features"),
   
@@ -78,6 +78,7 @@ main = mainPanel(
              tags$div(id='download_buttons')),
     tabPanel("Plot", 
              wellPanel(
+               p("Please preprocess data to view quality control plots"),
                selectInput("type",
                            label = h5("Select plot type", tipify(icon("question-circle"), title = "Use Profile Plots to view technical/biological variability and missing values; use Condition Plots to view differences in intensity between conditions; use QC Plots to view differences between runs and to check the effects of normalization")), c("Show Profile plots"="ProfilePlot","Show Condition plot"="ConditionPlot","Show QC plots"="QCPlot")),
                conditionalPanel(condition = "input.type == 'ProfilePlot'",
@@ -107,10 +108,12 @@ main = mainPanel(
 ########################################################################################
 
 qc = fluidPage(
-  headerPanel("Quality control"),
-  p("Preprocessing of the data is performed through 5 steps: Log transformation, Normalisation, Feature selection, Imputation for censored missing values, run-level summarisation.  Please choose preprocessing parameters and hit Run."),
-  p("More information on the preprocessing step can be found ", 
+  headerPanel("Data Processing"),
+  p("Preprocessing of the data is performed through 5 steps: (i) Log transformation, (ii) Normalisation, (iii) Feature selection, (iv) Imputation for censored missing values, (v) Run-level summarisation.  Please choose preprocessing parameters and hit Run.  More information on the preprocessing step can be found ", 
     a("here", href="https://rdrr.io/bioc/MSstats/man/dataProcess.html", target="_blank")),
+  p("Quality of data and preprocessing can be assessed in the plot tab of the main panel."),
+  p("Preprocessed data will be used for protein quantification and to build a statistical model to evaluate the changes in protein expression."),
+  p("PLEASE UPLOAD DATASET OR SELECT SAMPLE DATASET TO COMPLETE THIS STEP"),
   tags$br(),
   sbp_params,
   column(width = 8,

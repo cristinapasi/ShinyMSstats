@@ -1,8 +1,10 @@
 
 statmodel = fluidPage(
   headerPanel("Statistical Model"),
-  p("In this tab a statistical model is built.  Create a contrast matrix with the correct comparisons, then verify the model assumptions and view result plots."),
+  p("In this tab a statistical model is built in three steps: (i)Create a contrast matrix with the correct comparisons, then (ii) generate the model and (iii) view result plots."),
   p("More info ", a("here", href="https://www.rdocumentation.org/packages/MSstats/versions/3.4.0/topics/groupComparisonPlots")),
+  p("Statistical assumptions for the model can be verified in the Verify Model Assumptions tab in the main panel."),
+  p("PLEASE PREPROCESS DATA TO COMPLETE THIS STEP"),
   tabsetPanel(
     
 # statistical model
@@ -13,7 +15,7 @@ statmodel = fluidPage(
              wellPanel(
                fluidRow(
                  column(12,
-                        h3("STEP 1 - Define comparisons", tipify(icon("question-circle"), title="Choose pairwise comparisons to find significantly expressed proteins")),
+                        h3("STEP (i) - Define comparisons", tipify(icon("question-circle"), title="Choose pairwise comparisons to find significantly expressed proteins")),
                         fluidRow(
                           column(6,
                                  radioButtons("def_comp", "Define contrast matrix", c("All possible pairwise comparisons" = "all_pair", "Compare all against one" = "all_one", "Create custom comparisons" = "custom"), selected = character(0)),
@@ -49,7 +51,7 @@ statmodel = fluidPage(
              wellPanel(
                fluidRow(
                  column(12,
-                        h3("STEP 2 - View table of results"),
+                        h3("STEP (ii) - View table of results"),
                         actionButton("calculate", "Calculate comparison")
                  )
                )
@@ -65,7 +67,7 @@ statmodel = fluidPage(
              wellPanel(
                fluidRow(
                  column(12,
-                        h3("STEP 3 - Plot results"),
+                        h3("STEP (iii) - Plot results"),
                                          fluidRow(
                                            column(4,
                                                   selectInput("typeplot", 

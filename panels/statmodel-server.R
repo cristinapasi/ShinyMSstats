@@ -366,7 +366,7 @@ output$info2 <- renderPrint({
 
 output$verify <- renderUI ({
   tagList(
-    plotOutput("assum_plots"),
+    plotOutput("assum_plots", width = "800px", height = "600px"),
     conditionalPanel(condition = "input.whichProt1 != ''",
                      actionButton("saveone1", "Save this plot"),
                      bsTooltip(id = "saveone1", title = "Open plot as pdf.  Popups must be enabled", placement = "bottom", trigger = "hover"),

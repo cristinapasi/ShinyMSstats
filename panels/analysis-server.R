@@ -110,7 +110,14 @@ example1_mapped <- reactive({
 
 output$Hits <- renderUI({
   req(SignificantProteins)
-  max <- reactive({nrow(SignificantProteins())})
+  max <- reactive({
+    if (nrow(SignificantProteins()) <= 400) {
+      Max <- nrow(SignificantProteins())}
+    else {
+      Max <- 400
+    }
+    return(Max)
+      })
   numericInput("hits", 
                label = h5("Number of hits",
                           tipify(icon("question-circle"),

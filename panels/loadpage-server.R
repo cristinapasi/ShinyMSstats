@@ -29,7 +29,7 @@ observe({
   }
   
 })
-  
+
 ### functions ###
 
 get_annot = reactive({
@@ -37,8 +37,7 @@ get_annot = reactive({
   if(is.null(annot)) {
     return(NULL)
   }
-  annofile <- read.csv(annot$datapath)
-  return(annofile)
+  read.csv(annot$datapath)
 })
 
 get_evidence = reactive({
@@ -54,15 +53,14 @@ get_data = reactive({
     return(NULL)
     }
   if(input$filetype == 'sample') {
-    if(input$DDA_DIA == "SRM_PRM") {
-      mydata <- SRMRawData
-    }
-    else if(input$DDA_DIA == "DDA") {
-      mydata <- DDARawData
-    }
-    else if(input$DDA_DIA == "DIA")
-      mydata <- DIARawData
-#    mydata <- read.csv("dataset.csv", header = T, sep = ";")
+     if(input$DDA_DIA == "SRM_PRM") {
+       mydata <- SRM_yeast
+     }
+#     else if(input$DDA_DIA == "DDA") {
+ #      mydata <- DDARawData
+#     }
+     else if(input$DDA_DIA == "DIA")
+    mydata <- read.csv("dataset.csv", header = T, sep = ";")
     }
   else {
     infile <- input$data
@@ -74,19 +72,19 @@ get_data = reactive({
     }
     else if(input$filetype == 'sky') {
       data <- read.csv(infile$datapath, header = T, sep = input$sep, stringsAsFactors=F)
-      mydata <- SkylinetoMSstatsFormat(data, annotation = get_annot())
+      mydata <- SkylinetoMSstatsFormat(data, annotation = get_annot(), removeProtein_with1Peptide = input$remove)
     }
     else if(input$filetype == 'maxq') {
       data <- read.table(infile$datapath, header = T, sep = input$sep)
-      mydata <- MaxQtoMSstatsFormat(proteinGroups = data, annotation = get_annot(), evidence = get_evidence())
+      mydata <- MaxQtoMSstatsFormat(proteinGroups = data, annotation = get_annot(), evidence = get_evidence(), removeProtein_with1Peptide = input$remove)
     }
     else if(input$filetype == 'prog') {
       data <- read.csv(infile$datapath, header = T, sep = input$sep, stringsAsFactors=F)
-      mydata <- ProgenesistoMSstatsFormat(data, annotation = get_annot())
+      mydata <- ProgenesistoMSstatsFormat(data, annotation = get_annot(), removeProtein_with1Peptide = input$remove)
     }
     else if(input$filetype == 'PD') {
       data <- read.csv(infile$datapath, header = T, sep = input$sep)
-      mydata <- PDtoMSstatsFormat(data, annotation = get_annot(), removeProtein_with1Peptide=TRUE)
+      mydata <- PDtoMSstatsFormat(data, annotation = get_annot(), removeProtein_with1Peptide = input$remove)
     }
     else if(input$filetype == 'spec') {
       mydata <- SpectronauttoMSstatsFormat(data)

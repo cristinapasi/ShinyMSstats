@@ -11,3 +11,7 @@ session$onSessionEnded(function(){
 output$count <- renderText({
   vals$count
 })
+
+observeEvent(input$Foo, {
+  js$enableTab("Data processing")
+})

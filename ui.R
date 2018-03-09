@@ -4,6 +4,7 @@ library(shinyBS)
 library(shinyjs)
 library(STRINGdb)
 if (FALSE) require("V8")
+library(MSnbase)
 
 #####################################
 
@@ -52,31 +53,39 @@ radioTooltip <- function(id, choice, title, placement = "bottom", trigger = "hov
 source("panels/home-ui.R", local = T)
 source("panels/loadpage-ui.R", local = T)
 source("panels/qc-ui.R", local = T)
+source("panels/pq-ui.R", local = T)
 source("panels/statmodel-ui.R", local = T)
 source("panels/expdes-ui.R", local = T)
-source("panels/analysis-ui.R", local = T)
-source("panels/clust-ui.R", local = T)
+#source("panels/analysis-ui.R", local = T)
+#source("panels/clust-ui.R", local = T)
 source("panels/report-ui.R", local = T)
 source("panels/help-ui.R", local = T)
 
 #########################################################################
 
-jsCode = "
+jsCode = '
 shinyjs.init = function() {
-console.log('FOO')
-shinyjs.disabledTabHandler = function(e) {
-  e.preventDefault(); return false;
+$(document).keypress(function(e) { alert("Key pressed: " + e.which); });
+  alert("fooo");
+  console.log("initttttt");
+  $("#tablist li a").addClass("disabled");
+
+  $(".nav").on("click", ".disabled", function (e) {
+    e.preventDefault();
+    return false;
+  });
 }
 
-shinyjs.disableTabs = function() {
-  $('#tablist li').addClass('disabled');
-  $('#tablist li a').bind('click', disabledTabHandler);
+shinyjs.enableTab = function(value) {
+  $("#tablist li a[data-value=" + value + "]").removeClass("disabled");
 }
+'
 
-shinyjs.enableTabs = function() {
-  $('#tablist li').addClass('disabled');
-  $('#tablist li a').bind('click', disabledTabHandler);
-}
+css <- "
+.disabled {
+background: #eee !important;
+cursor: default !important;
+color: black !important;
 }
 "
 
@@ -87,13 +96,16 @@ ui <- navbarPage(
   
   useShinyjs(),
   extendShinyjs(text = jsCode),
+  tags$style(css),
+  
   
   tabPanel("Homepage", icon = icon("home"), home),
-  tabPanel("Load data", icon = icon("send"), loadpage),
+  tabPanel("Upload data", icon = icon("send"), loadpage),
   tabPanel("Data Processing", icon = icon("gears"), qc),
+  tabPanel("Protein Quantification", icon = icon("calculator"), pq),
   tabPanel("Statistical Model", icon = icon("magic"), statmodel),
-  tabPanel("Functional Analysis", icon = icon("bar-chart"), analysis),
-  tabPanel("Clustering/Classification", icon = icon("puzzle-piece"), clust),
+#  tabPanel("Functional Analysis", icon = icon("bar-chart"), analysis),
+#  tabPanel("Clustering/Classification", icon = icon("puzzle-piece"), clust),
   tabPanel("Future Experiments", icon = icon("flask"), expdes),
   tabPanel("Download Report", icon = icon("download"), report),
   tabPanel("Help", icon = icon("ambulance"), help),

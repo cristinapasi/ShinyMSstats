@@ -13,6 +13,8 @@ library(marray)
 library(gplots)
 library(STRINGdb)
 if (FALSE) require("V8")
+library(MSnbase)
+library(MSstatsBioData)
 
 ###### global functions ###########
 
@@ -29,18 +31,25 @@ xy_str <- function(e) {
 shinyServer(function(input, output, session) {
   options(shiny.maxRequestSize=350*1024^2) 
   session$allowReconnect(TRUE)
+  observe({
+    toggleClass(condition = TRUE,
+                class = "disabled",
+                selector = "#tablist li a[data-value='Data processing']")
+  })
   # load data
   source("panels/loadpage-server.R", local = T)
 #  source("panels/home-server.R", local = T)
   source("panels/utils.R", local = T)
-  # quality control
+  # data preprocessing
   source("panels/qc-server.R", local = T)
+  # protein quantification
+  source("panels/pq-server.R", local = T)
   # statistical model
   source("panels/statmodel-server.R", local = T)
   # functional analysis
-  source("panels/analysis-server.R", local = T)
+#  source("panels/analysis-server.R", local = T)
   # clustering/classification
-  source("panels/clust-server.R", local = T)
+#  source("panels/clust-server.R", local = T)
   # future experiment
   source("panels/expdes-server.R", local = T)
   # report
