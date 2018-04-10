@@ -1,6 +1,8 @@
 # quantification
 
 abundance <- reactive({
+  validate(need(preprocess_data(),
+                message = "PLEASE COMPLETE DATA PROCESSING STEP"))
   quantification(preprocess_data(),
                  type = input$typequant,
                  format = input$format)
@@ -10,7 +12,7 @@ abundance <- reactive({
 
 output$download_summary <- downloadHandler(
   filename = function() {
-    paste("data-", Sys.Date(), ".csv", sep="")
+    paste("abundance-", Sys.Date(), ".csv", sep="")
   },
   content = function(file) {
     write.csv(abundance(), file)

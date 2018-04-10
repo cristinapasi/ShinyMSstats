@@ -3,31 +3,31 @@
 sbp_params = sidebarPanel(
   
   # transformation
+  
   radioButtons("log", 
-               label= h4("STEP (i) - log transformation", tipify(icon("question-circle"), title = "Logarithmic transformation is applied to the Intensities column")), c(log2 = "2", log10 = "10")),
+               label= h4("Log transformation", tipify(icon("question-circle"), title = "Logarithmic transformation is applied to the Intensities column")), c(log2 = "2", log10 = "10")),
   tags$hr(),
   
   #normalisation
+  
   selectInput("norm", 
-              label = h4("STEP (ii) - normalisation", tipify(icon("question-circle"), title = "Choose a normalisation method.  For more information visit the Help tab")), c("none" = "FALSE", "equalize medians" = "equalizeMedians", "quantile" = "quantile", "global standards" = "globalStandards"), selected = "equalizeMedians"),
+              label = h4("Normalisation", tipify(icon("question-circle"), title = "Choose a normalisation method.  For more information visit the Help tab")), c("none" = "FALSE", "equalize medians" = "equalizeMedians", "quantile" = "quantile", "global standards" = "globalStandards"), selected = "equalizeMedians"),
   conditionalPanel(condition = "input.norm == 'globalStandards'",
                    radioButtons("standards", "Choose type of standards", c("Proteins", "Peptides")),
                    uiOutput("Names")
   ),
   tags$hr(),
   
-  ### summary method
-  h4("STEP (iii) - summarization", tipify(icon("question-circle"), title = "Run-level summarization method")),
-  p("method: TMP"),
-  p("For linear summarzation please use command line"),
-  tags$hr(),
+  # features
   
-  # remove features with more than 50% missing 
-  checkboxInput("remove50", "remove runs with over 50% missing values"),
+  h4("Used features"),
+  checkboxInput("all_feat", "Use all features", value = TRUE),
+  uiOutput("features"),
   tags$hr(),
   
   ### censoring
-  h4("STEP (iv) - Censored values"),
+  
+  h4("Censored values"),
   radioButtons('censInt', 
               label = h5("Assumptions for censored data", tipify(icon("question-circle"), title = "Processing software report missing values differently; please choose the appropriate options to distinguish missing values and if censored/at random")), c("assume all NA as censored" = "NA", "assume all between 0 and 1 as censored" = "0", "all missing values are random" = "null"), selected = "NA"),
   radioTooltip(id = "censInt", choice = "NA", title = "It assumes that all NAs in Intensity column are censored.", placement = "right", trigger = "hover"),
@@ -50,15 +50,20 @@ sbp_params = sidebarPanel(
                                  )),
   tags$hr(),
   
-  # features
+  ### summary method
   
-  h4("STEP (v) - Used features"),
-  checkboxInput("all_feat", "Use all features", value = TRUE),
-  uiOutput("features"),
+  h4("Summarization", tipify(icon("question-circle"), title = "Run-level summarization method")),
+  p("method: TMP"),
+  p("For linear summarzation please use command line"),
+  tags$hr(),
+  
+  # remove features with more than 50% missing 
+  checkboxInput("remove50", "remove runs with over 50% missing values"),
+  tags$hr(),
+  
   
   # run 
   
-  tags$hr(),
   actionButton("run", "Run Preprocessing")
 )
 
@@ -80,7 +85,7 @@ main = mainPanel(
              wellPanel(
                p("Please preprocess data to view quality control plots"),
                selectInput("type",
-                           label = h5("Select plot type", tipify(icon("question-circle"), title = "Use Profile Plots to view technical/biological variability and missing values; use Condition Plots to view differences in intensity between conditions; use QC Plots to view differences between runs and to check the effects of normalization")), c("Show Profile plots"="ProfilePlot","Show Condition plot"="ConditionPlot","Show QC plots"="QCPlot")),
+                           label = h5("Select plot type", tipify(icon("question-circle"), title = "Use Profile Plots to view technical/biological variability and missing values; use Condition Plots to view differences in intensity between conditions; use QC Plots to view differences between runs and to check the effects of normalization")), c("Show QC plots"="QCPlot", "Show Profile plots"="ProfilePlot","Show Condition plot"="ConditionPlot")),
                conditionalPanel(condition = "input.type == 'ProfilePlot'",
                                 checkboxInput("summ", "Show plot with summary"),
                                 selectInput("fname",  
@@ -109,7 +114,7 @@ main = mainPanel(
 
 qc = fluidPage(
   headerPanel("Data Processing"),
-  p("Preprocessing of the data is performed through 5 steps: (i) Log transformation, (ii) Normalisation, (iii) Feature selection, (iv) Imputation for censored missing values, (v) Run-level summarisation.  Please choose preprocessing parameters and hit Run.  More information on the preprocessing step can be found ", 
+  p("Preprocessing of the data is performed through: (i) Log transformation, (ii) Normalisation, (iii) Feature selection, (iv) Imputation for censored missing values, (v) Run-level summarisation.  Please choose preprocessing parameters and hit Run.  More information on the preprocessing step can be found ", 
     a("here", href="https://rdrr.io/bioc/MSstats/man/dataProcess.html", target="_blank")),
   p("Quality of data and preprocessing can be assessed in the plot tab of the main panel."),
   p("Preprocessed data will be used for protein quantification and to build a statistical model to evaluate the changes in protein expression."),

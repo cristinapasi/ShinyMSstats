@@ -9,7 +9,7 @@ statmodel = fluidPage(
     
 # statistical model
     
-    tabPanel("Data Comparison",
+    tabPanel("Group Comparison",
              
 # comparison matrix              
              wellPanel(

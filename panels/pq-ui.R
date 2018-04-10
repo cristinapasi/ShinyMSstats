@@ -26,7 +26,7 @@ main = mainPanel(
 pq = fluidPage(
   headerPanel("Protein Quantification"),
   p("Quantification of the proteins after preprocessing."),
-  p("PLEASE PREPROCESS DATA TO COMPLETE THIS STEP"),
+  p("PLEASE COMPLETE DATA PROCESSING STEP"),
   tags$br(),
   main
 )

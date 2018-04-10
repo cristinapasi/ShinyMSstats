@@ -344,8 +344,9 @@ observe ({output$comp_plots <- renderPlot({
 
 plotset <- reactive({
   v1 <- data_comparison()$ComparisonResult[,1]
-  v2 <- round(data_comparison()$ComparisonResult[,3], 6)
-  v3 <- round(data_comparison()$ComparisonResult[,8], 6)
+  v2 <- round(data_comparison()$ComparisonResult[,3], 10)
+  v3 <- round(data_comparison()$ComparisonResult[,8], 10)
+  v4 <- data_comparison()$ComparisonResult[,2]
   if (input$logp == "2") {
     v3 <- -log2(v3)
   }
@@ -353,8 +354,9 @@ plotset <- reactive({
     v3 <- - log10(v3)
   }
 
-  df <- data.frame(v1,v2,v3)
-  colnames(df) <- c("Protein", "logFC", "logadj.pvalue")
+  df <- data.frame(v1,v2,v3,v4)
+  df <- df[df$v4 == input$whichComp,]
+  colnames(df) <- c("Protein", "logFC", "logadj.pvalue", "comparison")
   return(df)
 })
 

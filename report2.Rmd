@@ -1,6 +1,6 @@
 ---
-title: "Report"
-output: pdf_document
+title: "Report2"
+output: html_document
 ---
 
 # Introduction
@@ -70,6 +70,3 @@ head(SignificantProteins(),20)
 Plots of results can be downloaded from the Statistical Model window, Data Comparison tab.
 
 Model assumptions can be verified with QQ Plots and ResidualPlots, which can be downloaded from the Statistical Model window, Model Assumptions tab.
-
-
-

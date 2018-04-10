@@ -94,6 +94,14 @@ ui <- navbarPage(
   id = "tablist",
   selected = "Homepage",
   
+  tags$head(
+    tags$style(HTML("
+                    .shiny-output-error-validation {
+                    color: red;
+                    }
+                    "))
+    ),
+  
   useShinyjs(),
   extendShinyjs(text = jsCode),
   tags$style(css),
@@ -107,7 +115,7 @@ ui <- navbarPage(
 #  tabPanel("Functional Analysis", icon = icon("bar-chart"), analysis),
 #  tabPanel("Clustering/Classification", icon = icon("puzzle-piece"), clust),
   tabPanel("Future Experiments", icon = icon("flask"), expdes),
-  tabPanel("Download Report", icon = icon("download"), report),
+  tabPanel("Download Logfile", icon = icon("download"), report),
   tabPanel("Help", icon = icon("ambulance"), help),
   inverse = T,
   collapsible = T,

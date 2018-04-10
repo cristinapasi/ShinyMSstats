@@ -1,5 +1,5 @@
 report = fluidPage(
-  headerPanel("Analysis report"),
+  headerPanel("Analysis logfile"),
   # tags$br(),
   # mainPanel(
   #   div(
@@ -77,7 +77,7 @@ report = fluidPage(
   #       p("See plots to estimate sample size or power (downloaded from the Future Experiment tab)"),
   #       textInput("observations3", "Observations")
   #       ),
-      downloadButton("pdf", "Download pdf report")
+  downloadButton("pdf", "Download pdf logfile")
       )
   #   )
   # )

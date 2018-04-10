@@ -47,8 +47,17 @@ quantile <- function() {
 
 output$features <- renderUI({
   req(get_data())
-  max_feat <- nrow(unique(get_data()[1]))
-  sliderInput("n_feat", "Number of top features to use", 1, as.numeric(max_feat), 3)
+  max_feat <- reactive ({
+    if (nrow(unique(get_data()[1])) < 20) {
+      m_feat <- nrow(unique(get_data()[1]))
+    }
+    else
+    {
+      m_feat <- 20
+      }
+    return(m_feat)
+  })
+  sliderInput("n_feat", "Number of top features to use", 1, as.numeric(max_feat()), 3)
 })
 
 observe ({
@@ -81,6 +90,8 @@ output$Which <- renderUI({
 # preprocess data
   
 preprocess_data = eventReactive(input$run, {
+  validate(need(get_data(), 
+                message = "PLEASE UPLOAD DATASET OR SELECT SAMPLE"))
   preprocessed <- dataProcess(raw=get_data(),
                               logTrans=input$log,
                               normalization=input$norm,

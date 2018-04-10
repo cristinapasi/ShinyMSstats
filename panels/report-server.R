@@ -19,7 +19,6 @@
 # output$input13 <- renderText(input$signif)
 # output$output4.1 <- renderTable(SignificantProteins())
 
-
 output$pdf <- downloadHandler(
   filename = "report.pdf",
   content = function(file) {
